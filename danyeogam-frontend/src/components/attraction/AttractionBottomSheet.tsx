@@ -43,6 +43,7 @@ export function AttractionBottomSheet({
             <>
               {detail.stampEnabled && (
                 <Button
+                  fullWidth
                   onClick={() => navigate(ROUTES.attractionStamp(detail.id))}
                 >
                   스탬프 인증하기

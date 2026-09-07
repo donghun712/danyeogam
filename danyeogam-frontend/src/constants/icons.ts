@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   BookOpen,
+  ChevronDown,
   LocateFixed,
   Map,
   MapPin,
@@ -27,4 +28,5 @@ export const AppIcon = {
   share: Share2,
   close: X,
   back: ArrowLeft,
+  chevronDown: ChevronDown,
 } as const;

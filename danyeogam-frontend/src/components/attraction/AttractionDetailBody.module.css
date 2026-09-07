@@ -63,6 +63,11 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap; /* STEP 9 실제 확인: 좁은 화면에서 4개 버튼이 한 줄에 눌려 글자가 끊기던 문제 수정 */
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.actions > * {
+  flex: 1 1 auto;
 }

@@ -1,10 +1,36 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .select {
+  /* 네이티브 select 기능·접근성은 그대로 두고, 브라우저 기본 화살표만 감춘 뒤
+     시안처럼 알약형 배경 + 커스텀 화살표로 보이게 스타일만 입힌다. */
+  appearance: none;
+  -webkit-appearance: none;
   font-family: inherit;
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-h3);
   color: var(--color-ink);
   background: #fff;
   border: 1px solid var(--color-sand);
-  border-radius: var(--radius-input);
-  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-badge);
+  padding: var(--space-md) var(--space-2xl) var(--space-md) var(--space-lg);
+  min-height: 44px; /* 모바일 터치 영역 확보 */
+  cursor: pointer;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-heritage-brown);
+  outline-offset: 2px;
+}
+
+.chevron {
+  position: absolute;
+  right: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-heritage-brown);
+  pointer-events: none; /* 클릭이 아래 select로 그대로 전달되게 */
 }

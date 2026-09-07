@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FullPageLayout } from "@/components/common/FullPageLayout";
 import { AttractionDetailBody } from "@/components/attraction/AttractionDetailBody";
 import { AttractionDetailStatus } from "@/components/attraction/AttractionDetailStatus";
+import { ErrorState } from "@/components/common/ErrorState";
 import { Button } from "@/components/common/Button";
 import { NavigationButton } from "@/components/common/NavigationButton";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
@@ -23,6 +24,17 @@ export function AttractionDetailPage() {
   const spotId = Number.isFinite(parsedId) ? parsedId : null;
   const { status, detail, errorCode, retry } = useAttractionDetail(spotId);
 
+  // STEP 10 QA: attractionId가 숫자로 파싱되지 않으면 spotId가 null이 되고,
+  // useAttractionDetail(null)은 요청 없이 idle 상태로만 머문다 — 방치하면 빈 화면이 되므로
+  // StampVerificationPage와 동일한 패턴으로 여기서 명시적으로 오류 상태를 보여준다.
+  if (spotId === null) {
+    return (
+      <FullPageLayout title="관광지 상세">
+        <ErrorState message="잘못된 관광지 정보예요." />
+      </FullPageLayout>
+    );
+  }
+
   return (
     <FullPageLayout title={detail?.name ?? "관광지 상세"}>
       {!detail && (status === "loading" || status === "error") && (
@@ -40,6 +52,7 @@ export function AttractionDetailPage() {
             <>
               {detail.stampEnabled && (
                 <Button
+                  fullWidth
                   onClick={() => navigate(ROUTES.attractionStamp(detail.id))}
                 >
                   스탬프 인증하기

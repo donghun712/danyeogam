@@ -19,6 +19,15 @@ export function ParkingListPage() {
   const spotId = Number.isFinite(parsedId) ? parsedId : null;
   const { status, items, retry } = useNearbyParking(spotId);
 
+  // STEP 10 QA: 위와 동일한 이유로, spotId가 null이면 명시적으로 오류 상태를 보여준다.
+  if (spotId === null) {
+    return (
+      <FullPageLayout title="주변 주차장">
+        <ErrorState message="잘못된 관광지 정보예요." />
+      </FullPageLayout>
+    );
+  }
+
   return (
     <FullPageLayout title="주변 주차장">
       {status === "loading" && items.length === 0 && (

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { MAP_BOUNDS_DEBOUNCE_MS } from "@/constants/api";
 import {
   createAttractionMarkerImage,
+  createClustererStyle,
   createCurrentLocationMarkerImage,
 } from "@/utils/attractionMarkerIcons";
 import type { MapBounds } from "@/api/attractionApi";
@@ -60,11 +61,19 @@ export function MapView({
     });
     mapRef.current = map;
 
+    // 화면시안 우측 하단 확대/축소 컨트롤 — 카카오맵 SDK 기본 제공 컨트롤을 그대로 사용한다.
+    // SDK에 나침반(지도 회전) 컨트롤은 별도로 제공되지 않아 추가하지 않았다(아래 보고 참고).
+    map.addControl(
+      new kakao.maps.ZoomControl(),
+      kakao.maps.ControlPosition.BOTTOMRIGHT,
+    );
+
     clustererRef.current = new kakao.maps.MarkerClusterer({
       map,
       averageCenter: true,
       minLevel: 6,
       gridSize: 80,
+      styles: [createClustererStyle()],
     });
 
     const emitBounds = () => {

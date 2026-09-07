@@ -10,6 +10,7 @@
   font-weight: var(--font-weight-button);
   cursor: pointer;
   transition: opacity 0.15s ease;
+  white-space: nowrap; /* STEP 9 실제 확인: 좁은 화면에서 버튼 글자가 중간에 끊기던 문제 수정 */
 }
 
 .button:active {

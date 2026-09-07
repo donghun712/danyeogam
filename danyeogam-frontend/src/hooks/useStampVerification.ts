@@ -26,10 +26,17 @@ export type StampVerificationPhase =
   | "result"
   | "http_error";
 
+/** 브라우저 Geolocation이 실제로 반환한 값 그대로 — 화면 표시용으로만 쓰고 서버 판정에는 영향 없음. */
+export interface LastMeasurement {
+  accuracyMeters: number;
+  measuredAt: string;
+}
+
 interface StampVerificationState {
   phase: StampVerificationPhase;
   result: StampVerificationResult | null;
   errorCode: string | null;
+  lastMeasurement: LastMeasurement | null;
 }
 
 export function useStampVerification(touristSpotId: number) {
@@ -37,6 +44,7 @@ export function useStampVerification(touristSpotId: number) {
     phase: "ready",
     result: null,
     errorCode: null,
+    lastMeasurement: null,
   });
   // 중복 클릭 방지: setState는 비동기라 즉시 참조 가능한 ref로도 같이 막는다.
   const isBusyRef = useRef(false);
@@ -45,17 +53,27 @@ export function useStampVerification(touristSpotId: number) {
     if (isBusyRef.current) return;
     isBusyRef.current = true;
 
-    setState({ phase: "measuring", result: null, errorCode: null });
+    // 새 시도를 시작하므로 이전 측정값 표시도 지운다(다음 측정이 나올 때까지 낡은 값을 보여주지 않음).
+    setState({ phase: "measuring", result: null, errorCode: null, lastMeasurement: null });
 
     if (!("geolocation" in navigator)) {
       isBusyRef.current = false;
-      setState({ phase: "gps_unavailable", result: null, errorCode: null });
+      setState({
+        phase: "gps_unavailable",
+        result: null,
+        errorCode: null,
+        lastMeasurement: null,
+      });
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setState((prev) => ({ ...prev, phase: "verifying" }));
+        const lastMeasurement: LastMeasurement = {
+          accuracyMeters: position.coords.accuracy,
+          measuredAt: new Date(position.timestamp).toISOString(),
+        };
+        setState((prev) => ({ ...prev, phase: "verifying", lastMeasurement }));
 
         verifyStamp(
           {
@@ -64,14 +82,19 @@ export function useStampVerification(touristSpotId: number) {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
               accuracyMeters: position.coords.accuracy,
-              measuredAt: new Date(position.timestamp).toISOString(),
+              measuredAt: lastMeasurement.measuredAt,
             },
           },
           createIdempotencyKey(),
         )
           .then((result) => {
             isBusyRef.current = false;
-            setState({ phase: "result", result, errorCode: null });
+            setState((prev) => ({
+              ...prev,
+              phase: "result",
+              result,
+              errorCode: null,
+            }));
             if (
               result.status === "VERIFIED_NEW" ||
               result.status === "VERIFIED_ALREADY_ACQUIRED"
@@ -87,7 +110,12 @@ export function useStampVerification(touristSpotId: number) {
                 : error instanceof NetworkError
                   ? "NETWORK_ERROR"
                   : "UNKNOWN_ERROR";
-            setState({ phase: "http_error", result: null, errorCode: code });
+            setState((prev) => ({
+              ...prev,
+              phase: "http_error",
+              result: null,
+              errorCode: code,
+            }));
           });
       },
       (error) => {
@@ -97,11 +125,22 @@ export function useStampVerification(touristSpotId: number) {
             phase: "gps_permission_denied",
             result: null,
             errorCode: null,
+            lastMeasurement: null,
           });
         } else if (error.code === error.TIMEOUT) {
-          setState({ phase: "gps_timeout", result: null, errorCode: null });
+          setState({
+            phase: "gps_timeout",
+            result: null,
+            errorCode: null,
+            lastMeasurement: null,
+          });
         } else {
-          setState({ phase: "gps_unavailable", result: null, errorCode: null });
+          setState({
+            phase: "gps_unavailable",
+            result: null,
+            errorCode: null,
+            lastMeasurement: null,
+          });
         }
       },
       // 인증 버튼을 누른 시점의 새 위치가 필요하므로 캐시된 좌표를 재사용하지 않는다.

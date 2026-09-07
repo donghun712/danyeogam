@@ -40,7 +40,10 @@
 .overlayBottom {
   position: absolute;
   left: var(--space-lg);
-  right: var(--space-lg);
+  /* 우측 하단 카카오맵 기본 ZoomControl과 겹치지 않도록 오른쪽 여백을 더 둔다.
+     정확한 폭은 카카오 SDK가 자체 렌더링하는 값이라 이 환경에서 실측은 못 했고,
+     공식 문서상 컨트롤 크기 기준으로 넉넉히 잡은 추정치다 — 실기기에서 재확인 필요. */
+  right: 76px;
   bottom: var(--space-lg);
   z-index: 20;
   background: var(--color-hanji-ivory);

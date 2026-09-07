@@ -27,6 +27,11 @@
   --color-info: #55758a;
   --color-disabled: #b9b4aa;
 
+  /* ── Color: Stamp Seal (화면시안 "05 스탬프 획득" 참고) ─
+     디자인 시스템 문서의 팔레트에는 없는 값이다. 시안이 보여주는 붉은 인주(印朱) 색을
+     근사치로 추가했다 — 팀에서 최종 확정하면 이 값만 바꾸면 된다. */
+  --color-stamp-ink: #b23b2e;
+
   /* ── Color: Button Secondary (디자인 시스템 26장) ─ */
   --color-secondary-bg: #efe8dc;
   --color-secondary-text: #5b4636;
