@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:${MYSQL_PORT:3306}/danyeogam?useUnicode=true&characterEncoding=UTF-8&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${MYSQL_USER:danyeogam}
+    password: ${MYSQL_PASSWORD:danyeogam-local}
+
+app:
+  anonymous-session:
+    cookie-secure: ${SESSION_COOKIE_SECURE:false}
+  stamp-verification:
+    default-radius-meters: ${STAMP_DEFAULT_RADIUS_METERS:100}
+    max-accuracy-meters: ${STAMP_MAX_ACCURACY_METERS:50}
+    max-location-age: ${STAMP_MAX_LOCATION_AGE:2m}

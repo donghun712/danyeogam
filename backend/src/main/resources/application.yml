@@ -1,0 +1,111 @@
+spring:
+  application:
+    name: danyeogam-backend
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 3000
+      validation-timeout: 1000
+      maximum-pool-size: ${DATABASE_POOL_MAX_SIZE:10}
+      minimum-idle: ${DATABASE_POOL_MIN_IDLE:2}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
+    baseline-on-migrate: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  compression:
+    enabled: ${SERVER_COMPRESSION_ENABLED:true}
+    min-response-size: ${SERVER_COMPRESSION_MIN_RESPONSE_SIZE:2KB}
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,application/javascript
+
+springdoc:
+  paths-to-match: /api/v1/**
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    try-it-out-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: 0.0.1-SNAPSHOT
+
+external-api:
+  tour:
+    base-url: ${TOUR_API_BASE_URL:https://apis.data.go.kr/B551011/KorService2}
+    service-key: ${TOUR_API_SERVICE_KEY:}
+    mobile-os: ${TOUR_API_MOBILE_OS:ETC}
+    mobile-app: ${TOUR_API_MOBILE_APP:다녀감}
+    connect-timeout: ${TOUR_API_CONNECT_TIMEOUT:3s}
+    read-timeout: ${TOUR_API_READ_TIMEOUT:10s}
+  kakao-local:
+    base-url: ${KAKAO_LOCAL_BASE_URL:https://dapi.kakao.com}
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    connect-timeout: ${KAKAO_CONNECT_TIMEOUT:3s}
+    read-timeout: ${KAKAO_READ_TIMEOUT:5s}
+
+app:
+  web:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  anonymous-session:
+    cookie-name: ${SESSION_COOKIE_NAME:dg_session}
+    ttl: ${SESSION_TTL:90d}
+    touch-interval: ${SESSION_TOUCH_INTERVAL:1h}
+    cookie-secure: ${SESSION_COOKIE_SECURE:true}
+  stamp-verification:
+    default-radius-meters: ${STAMP_DEFAULT_RADIUS_METERS:}
+    max-accuracy-meters: ${STAMP_MAX_ACCURACY_METERS:}
+    max-location-age: ${STAMP_MAX_LOCATION_AGE:}
+    max-future-skew: ${STAMP_MAX_FUTURE_SKEW:10s}
+    max-attempts-per-minute: ${STAMP_MAX_ATTEMPTS_PER_MINUTE:5}
+  map-query:
+    max-latitude-span: ${MAP_QUERY_MAX_LATITUDE_SPAN:1.0}
+    max-longitude-span: ${MAP_QUERY_MAX_LONGITUDE_SPAN:1.0}
+    max-results: ${MAP_QUERY_MAX_RESULTS:1000}
+  geo-query:
+    reverse-cache-ttl: ${GEO_REVERSE_CACHE_TTL:5m}
+    reverse-cache-max-entries: ${GEO_REVERSE_CACHE_MAX_ENTRIES:10000}
+  parking-query:
+    default-radius-meters: ${PARKING_DEFAULT_RADIUS_METERS:3000}
+    max-radius-meters: ${PARKING_MAX_RADIUS_METERS:20000}
+    default-limit: ${PARKING_DEFAULT_LIMIT:3}
+    max-limit: ${PARKING_MAX_LIMIT:15}
+    cache-ttl: ${PARKING_CACHE_TTL:5m}
+    cache-max-entries: ${PARKING_CACHE_MAX_ENTRIES:5000}
+  tour-sync:
+    enabled: ${TOUR_SYNC_ENABLED:false}
+    area-code: ${TOUR_SYNC_AREA_CODE:}
+    page-size: ${TOUR_SYNC_PAGE_SIZE:50}
+    max-pages: ${TOUR_SYNC_MAX_PAGES:1}
+    hydrate-details: ${TOUR_SYNC_HYDRATE_DETAILS:true}
