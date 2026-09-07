@@ -24,6 +24,7 @@ public class AnonymousSessionProperties {
     private Duration ttl = Duration.ofDays(90);
     private Duration touchInterval = Duration.ofHours(1);
     private boolean cookieSecure = true;
+    private String cookiePath = "/api";
 
     public String getCookieName() {
         return cookieName;
@@ -57,6 +58,14 @@ public class AnonymousSessionProperties {
         this.cookieSecure = cookieSecure;
     }
 
+    public String getCookiePath() {
+        return cookiePath;
+    }
+
+    public void setCookiePath(String cookiePath) {
+        this.cookiePath = cookiePath;
+    }
+
     @AssertTrue(message = "익명 세션 TTL은 1시간 이상 365일 이하여야 합니다.")
     public boolean isTtlValid() {
         return ttl != null && ttl.compareTo(MIN_TTL) >= 0 && ttl.compareTo(MAX_TTL) <= 0;
@@ -68,5 +77,13 @@ public class AnonymousSessionProperties {
                 && !touchInterval.minus(Duration.ofMinutes(1)).isNegative()
                 && ttl != null
                 && touchInterval.compareTo(ttl) < 0;
+    }
+
+    @AssertTrue(message = "세션 쿠키 경로는 /api 또는 그 하위의 절대 경로여야 합니다.")
+    public boolean isCookiePathValid() {
+        return cookiePath != null
+                && (cookiePath.equals("/api") || cookiePath.startsWith("/api/"))
+                && !cookiePath.contains("..")
+                && !cookiePath.contains(";");
     }
 }

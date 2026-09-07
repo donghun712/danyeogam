@@ -6,7 +6,7 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 
 프론트 연결 전 백엔드 준비를 완료했다. 카카오 Local 실연동, 분리 MySQL 전체 통합 테스트, 전국 TourAPI 초기 카탈로그 적재, Swagger/OpenAPI 계약 생성을 검증했다.
 
-- Spring Boot 3.5.7
+- Spring Boot 3.5.16
 - Java 17
 - Gradle 8.14.4 Wrapper
 - Web, Validation, Actuator
@@ -40,6 +40,10 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 - 스탬프 대상 0개 지역의 안전한 0% 처리
 - Swagger UI와 JSON/YAML OpenAPI 계약
 - 2KB 이상 JSON 응답의 서버 압축
+- API 보안 헤더, 오류 응답 `no-store`, 익명 세션 발급·API IP 요청 제한
+- 운영 Swagger 비활성화와 `prod` 프로필 보안 설정 검증
+- 운영 Flyway 마이그레이션 계정과 애플리케이션 런타임 계정 분리
+- 로컬 MySQL 포트의 loopback(`127.0.0.1`) 전용 바인딩
 
 설계서의 권장 버전은 Java 21이지만 현재 개발 PC에는 Java 17만 설치되어 있어, 먼저 실행 가능한 Java 17로 구성했다. Java 21 설치 후 `build.gradle`의 toolchain 값을 21로 변경할 수 있다.
 
@@ -140,7 +144,7 @@ $env:RUN_LIVE_TOUR_API_TESTS='true'
 - 원문 토큰은 쿠키로만 전달하고 DB에는 SHA-256 해시 32바이트만 저장
 - 유효한 쿠키 재호출 시 기존 Actor·세션 재사용 및 중복 생성 방지 확인
 - 만료·변조·형식 오류 토큰은 인증에 사용하지 않음
-- 세션 쿠키에 `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age` 적용
+- 세션 쿠키에 `HttpOnly`, `SameSite=Lax`, `Path=/api`, `Max-Age` 적용
 - 운영 기본 `Secure=true`, 로컬 프로필만 `Secure=false`
 - 세션 없는 조회는 `UNKNOWN`, 유효 세션은 방문 기록에 따라 `NOT_VISITED`·`VISITED` 반환
 - 방문 상태가 포함된 지도·상세 응답은 `private, no-store`로 공개 캐시와 분리
@@ -242,16 +246,20 @@ $env:SPRING_PROFILES_ACTIVE='local'
 ## 운영 환경변수
 
 운영에서는 `application-local.yml` 값을 사용하지 않고 `.env.production.example`을 기준으로 환경변수를 주입한다. 비밀번호와 API 키는 Secret으로 관리한다.
+반드시 `SPRING_PROFILES_ACTIVE=prod`로 실행하며, 운영 보안 검증에 실패하면 서버가 시작되지 않는다.
 
 ```text
 DATABASE_URL
 DATABASE_USERNAME
 DATABASE_PASSWORD
+FLYWAY_DATABASE_USERNAME
+FLYWAY_DATABASE_PASSWORD
 DATABASE_POOL_MAX_SIZE
 DATABASE_POOL_MIN_IDLE
 SERVER_PORT
 SERVER_COMPRESSION_ENABLED
 SERVER_COMPRESSION_MIN_RESPONSE_SIZE
+SERVER_MAX_HTTP_REQUEST_HEADER_SIZE
 TOUR_API_BASE_URL
 TOUR_API_SERVICE_KEY
 TOUR_API_MOBILE_OS
@@ -274,6 +282,7 @@ PARKING_MAX_LIMIT
 PARKING_CACHE_TTL
 PARKING_CACHE_MAX_ENTRIES
 SESSION_COOKIE_NAME
+SESSION_COOKIE_PATH
 SESSION_TTL
 SESSION_TOUCH_INTERVAL
 SESSION_COOKIE_SECURE
@@ -283,6 +292,12 @@ STAMP_MAX_LOCATION_AGE
 STAMP_MAX_FUTURE_SKEW
 STAMP_MAX_ATTEMPTS_PER_MINUTE
 CORS_ALLOWED_ORIGINS
+HSTS_MAX_AGE
+API_RATE_LIMIT_ENABLED
+API_RATE_LIMIT_REQUESTS_PER_MINUTE
+API_RATE_LIMIT_SESSION_CREATES_PER_MINUTE
+API_RATE_LIMIT_MAX_TRACKED_CLIENTS
 ```
 
-운영 DB 계정에는 애플리케이션 실행에 필요한 최소 권한만 부여한다. Flyway 실행 계정과 런타임 계정을 분리하는 것은 배포 단계에서 적용한다.
+운영 DB 계정에는 애플리케이션 실행에 필요한 최소 권한만 부여하고, `prod` 프로필의 별도 Flyway 계정으로 스키마를 변경한다.
+구체적인 배포 보안 체크리스트와 프록시 헤더 예시는 `docs/security-hardening.md`를 따른다.

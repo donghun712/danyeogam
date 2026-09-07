@@ -1,0 +1,14 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.meta {
+  color: var(--color-disabled);
+}
+
+.distance {
+  color: var(--color-heritage-brown);
+  font-weight: 600;
+}

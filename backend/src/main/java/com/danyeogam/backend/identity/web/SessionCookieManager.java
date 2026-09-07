@@ -43,7 +43,7 @@ public class SessionCookieManager {
                 .httpOnly(true)
                 .secure(properties.isCookieSecure())
                 .sameSite("Lax")
-                .path("/")
+                .path(properties.getCookiePath())
                 .maxAge(Duration.ofSeconds(remainingSeconds))
                 .build();
     }

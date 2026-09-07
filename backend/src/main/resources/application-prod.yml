@@ -1,0 +1,8 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    user: ${FLYWAY_DATABASE_USERNAME}
+    password: ${FLYWAY_DATABASE_PASSWORD}
+

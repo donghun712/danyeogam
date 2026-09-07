@@ -24,7 +24,7 @@ POST /api/v1/sessions/anonymous
 원문 세션 토큰은 JSON에 포함되지 않고 `Set-Cookie`로만 전달된다.
 
 ```text
-Set-Cookie: dg_session=<opaque>; Path=/; Max-Age=...; Secure; HttpOnly; SameSite=Lax
+Set-Cookie: dg_session=<opaque>; Path=/api; Max-Age=...; Secure; HttpOnly; SameSite=Lax
 Cache-Control: no-store
 ```
 

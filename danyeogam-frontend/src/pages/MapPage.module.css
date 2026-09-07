@@ -1,0 +1,57 @@
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.addressBar {
+  position: absolute;
+  top: var(--space-lg);
+  left: var(--space-screen-padding-x);
+  right: var(--space-screen-padding-x);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-hanji-ivory);
+  border-radius: var(--radius-input);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.mapArea {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sdkLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-disabled);
+}
+
+.overlayBottom {
+  position: absolute;
+  left: var(--space-lg);
+  right: var(--space-lg);
+  bottom: var(--space-lg);
+  z-index: 20;
+  background: var(--color-hanji-ivory);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.initialLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  color: var(--color-disabled);
+}

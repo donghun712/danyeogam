@@ -1,0 +1,10 @@
+.select {
+  font-family: inherit;
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-h3);
+  color: var(--color-ink);
+  background: #fff;
+  border: 1px solid var(--color-sand);
+  border-radius: var(--radius-input);
+  padding: var(--space-sm) var(--space-md);
+}

@@ -2,12 +2,32 @@ spring:
   config:
     activate:
       on-profile: local
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:mysql://localhost:${MYSQL_PORT:3306}/danyeogam?useUnicode=true&characterEncoding=UTF-8&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
     username: ${MYSQL_USER:danyeogam}
     password: ${MYSQL_PASSWORD:danyeogam-local}
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    try-it-out-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+
 app:
+  web:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    hsts-max-age: 0s
   anonymous-session:
     cookie-secure: ${SESSION_COOKIE_SECURE:false}
   stamp-verification:

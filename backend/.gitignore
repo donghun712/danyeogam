@@ -1,9 +1,16 @@
 .gradle/
+.gradle-*/
 build/
 out/
 .idea/
 *.iml
 .vscode/
 .env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+*.p12
+*.jks
 logs/
-

@@ -1,6 +1,7 @@
 package com.danyeogam.backend.common.web;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 public class ApiWebProperties {
 
     private List<String> allowedOrigins = new ArrayList<>();
+    private Duration hstsMaxAge = Duration.ofDays(365);
 
     public List<String> getAllowedOrigins() { return List.copyOf(allowedOrigins); }
     public void setAllowedOrigins(List<String> origins) {
@@ -31,6 +33,19 @@ public class ApiWebProperties {
 
     public boolean allows(String origin) {
         return allowedOrigins.stream().anyMatch(value -> value.equalsIgnoreCase(origin));
+    }
+
+    public Duration getHstsMaxAge() {
+        return hstsMaxAge;
+    }
+
+    public void setHstsMaxAge(Duration hstsMaxAge) {
+        this.hstsMaxAge = hstsMaxAge;
+    }
+
+    @AssertTrue(message = "HSTS max-age는 0 이상이어야 합니다.")
+    public boolean isHstsMaxAgeValid() {
+        return hstsMaxAge != null && !hstsMaxAge.isNegative();
     }
 
     private static boolean validOrigin(String value) {

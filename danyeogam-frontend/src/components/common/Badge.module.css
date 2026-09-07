@@ -1,0 +1,25 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-badge);
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.brand {
+  background: color-mix(in srgb, var(--color-heritage-brown) 14%, transparent);
+  color: var(--color-heritage-brown);
+}
+
+.success {
+  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  color: var(--color-success);
+}
+
+.neutral {
+  background: var(--color-sand);
+  color: var(--color-ink);
+}

@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -111,6 +112,7 @@ public class GlobalExceptionHandler {
     ) {
         ApiError error = new ApiError(errorCode.name(), message, errorCode.retryable(), fieldErrors);
         return ResponseEntity.status(errorCode.status())
+                .cacheControl(CacheControl.noStore())
                 .body(new ApiErrorResponse(error, ApiMeta.now()));
     }
 }

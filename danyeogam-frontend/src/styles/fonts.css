@@ -1,0 +1,12 @@
+/**
+ * 자체 호스팅한 Pretendard 가변 폰트.
+ * 원본: node_modules/pretendard (devDependency) → public/fonts/PretendardVariable.woff2로 복사.
+ * 외부 CDN에 의존하지 않는다.
+ */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/PretendardVariable.woff2") format("woff2-variations");
+}

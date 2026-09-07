@@ -63,7 +63,7 @@ class AnonymousSessionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("dg_session=" + issuedToken)))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/api")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=3600")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Secure")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))

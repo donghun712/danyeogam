@@ -1,0 +1,48 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-button);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.button:active {
+  opacity: 0.85;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  background: var(--color-disabled);
+  color: var(--color-hanji-ivory);
+  opacity: 1;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Primary — 스탬프 인증하기 등 브랜드 핵심 행동 */
+.primary {
+  background: var(--color-heritage-brown);
+  color: var(--color-hanji-ivory);
+}
+
+/* Secondary — 주차장 보기 등 보조 행동 */
+.secondary {
+  background: var(--color-secondary-bg);
+  color: var(--color-secondary-text);
+}
+
+/* Ghost — 길찾기 등 배경 없는 텍스트 버튼 */
+.ghost {
+  background: transparent;
+  color: var(--color-heritage-brown);
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+}

@@ -3,6 +3,7 @@ package com.danyeogam.backend.tourapi;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
 @ConfigurationProperties(prefix = "external-api.tour")
 public class TourApiProperties {
@@ -28,6 +29,10 @@ public class TourApiProperties {
 
     public void setServiceKey(String serviceKey) {
         this.serviceKey = serviceKey;
+    }
+
+    public boolean hasServiceKey() {
+        return StringUtils.hasText(serviceKey);
     }
 
     public String getMobileOs() {

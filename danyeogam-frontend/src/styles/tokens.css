@@ -1,0 +1,89 @@
+/**
+ * 디자인 토큰
+ * 출처: 다녀감_A안_UI-UX_디자인_시스템 문서 3~7장
+ *
+ * 색상/폰트/spacing/radius가 값 하나 바뀌더라도 이 파일만 고치면 되도록
+ * 컴포넌트 CSS에서는 항상 이 변수를 참조하고 직접 hex/px 값을 쓰지 않는다.
+ *
+ * TODO: "최종 컬러 팔레트"는 팀 확정 전이므로(문서 맨 끝 5가지 결정 항목 중 하나)
+ * 아래 값은 A안 문서에 적힌 값을 그대로 쓴 것이며, 확정되면 이 파일만 수정하면 된다.
+ */
+
+:root {
+  /* ── Color: Primary ─────────────────────────── */
+  --color-hanji-ivory: #f7f3ea; /* 앱 기본 배경 */
+  --color-ink: #292621; /* 주요 텍스트 */
+  --color-heritage-brown: #8a4f2a; /* 브랜드 컬러 — 스탬프, 주요 강조 */
+
+  /* ── Color: Secondary ───────────────────────── */
+  --color-sand: #e7d7bc; /* 카드 배경, 보조 영역 */
+  --color-sage: #708267; /* 자연/방문완료/긍정 상태 */
+  --color-muted-gold: #b88a3b; /* 스탬프, 중요 포인트 */
+
+  /* ── Color: Semantic ────────────────────────── */
+  --color-success: #5f7d57;
+  --color-warning: #b98232;
+  --color-error: #b94a48;
+  --color-info: #55758a;
+  --color-disabled: #b9b4aa;
+
+  /* ── Color: Button Secondary (디자인 시스템 26장) ─ */
+  --color-secondary-bg: #efe8dc;
+  --color-secondary-text: #5b4636;
+
+  /* ── Typography ──────────────────────────────── */
+  --font-family-base:
+    "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
+
+  --font-size-display: 28px;
+  --font-weight-display: 700;
+
+  --font-size-h1: 24px;
+  --font-weight-h1: 700;
+
+  --font-size-h2: 20px;
+  --font-weight-h2: 700;
+
+  --font-size-h3: 17px;
+  --font-weight-h3: 600;
+
+  --font-size-body-large: 16px;
+  --font-weight-body-large: 400;
+
+  --font-size-body: 14px;
+  --font-weight-body: 400;
+
+  --font-size-caption: 12px;
+  --font-weight-caption: 400;
+
+  --font-size-button: 15px;
+  --font-weight-button: 600;
+
+  /* ── Spacing (기본 단위 4px) ─────────────────── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 40px;
+
+  --space-screen-padding-x: 20px;
+  --space-card-padding: 16px;
+  --space-bottom-sheet-padding: 20px;
+
+  /* ── Radius ──────────────────────────────────── */
+  --radius-button: 10px;
+  --radius-input: 10px;
+  --radius-card: 16px;
+  --radius-bottom-sheet: 24px;
+  --radius-modal: 20px;
+  --radius-badge: 999px;
+  --radius-image: 14px; /* 문서상 12~16px 범위의 중간값 */
+
+  /* ── Shadow ──────────────────────────────────── */
+  --shadow-card: 0 2px 12px rgba(40, 32, 24, 0.08);
+  --shadow-bottom-sheet: 0 -4px 20px rgba(40, 32, 24, 0.12);
+}

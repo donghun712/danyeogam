@@ -1,0 +1,46 @@
+/**
+ * 타입 스케일 유틸리티 클래스.
+ * 컴포넌트에서 font-size/font-weight를 직접 쓰지 않고 이 클래스를 사용한다.
+ */
+
+.text-display {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-display);
+  line-height: 1.3;
+}
+
+.text-h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-h1);
+  line-height: 1.3;
+}
+
+.text-h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-h2);
+  line-height: 1.3;
+}
+
+.text-h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-h3);
+  line-height: 1.35;
+}
+
+.text-body-large {
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-body-large);
+  line-height: 1.5;
+}
+
+.text-body {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-caption);
+  line-height: 1.4;
+}

@@ -12,15 +12,22 @@ public class ApiWebConfiguration implements WebMvcConfigurer {
 
     private final ApiWebProperties properties;
     private final WriteOriginInterceptor originInterceptor;
+    private final ApiRateLimitInterceptor rateLimitInterceptor;
 
-    public ApiWebConfiguration(ApiWebProperties properties, WriteOriginInterceptor originInterceptor) {
+    public ApiWebConfiguration(
+            ApiWebProperties properties,
+            WriteOriginInterceptor originInterceptor,
+            ApiRateLimitInterceptor rateLimitInterceptor
+    ) {
         this.properties = properties;
         this.originInterceptor = originInterceptor;
+        this.rateLimitInterceptor = rateLimitInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(originInterceptor).addPathPatterns("/api/**");
+        registry.addInterceptor(rateLimitInterceptor).addPathPatterns("/api/**");
     }
 
     @Override
