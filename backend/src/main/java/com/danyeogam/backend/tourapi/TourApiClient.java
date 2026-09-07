@@ -50,12 +50,24 @@ public class TourApiClient {
     }
 
     public TourApiPage<TouristSummary> getAreaBasedList(int pageNo, int numOfRows, String areaCode) {
+        return getAreaBasedList(pageNo, numOfRows, areaCode, null);
+    }
+
+    public TourApiPage<TouristSummary> getAreaBasedList(
+            int pageNo,
+            int numOfRows,
+            String areaCode,
+            String contentTypeId
+    ) {
         validatePage(pageNo, numOfRows);
         JsonNode body = get("/areaBasedList2", uriBuilder -> {
             UriBuilder builder = commonQuery(uriBuilder, pageNo, numOfRows)
                     .queryParam("arrange", "C");
             if (StringUtils.hasText(areaCode)) {
                 builder.queryParam("areaCode", areaCode);
+            }
+            if (StringUtils.hasText(contentTypeId)) {
+                builder.queryParam("contentTypeId", contentTypeId);
             }
             return builder.build();
         });

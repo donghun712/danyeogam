@@ -60,38 +60,38 @@ class TourSyncPipelineLiveMySqlTest {
         TourSyncResult first = syncService.synchronize(command);
 
         assertThat(first.status()).isEqualTo(SyncRunStatus.SUCCEEDED);
-        assertThat(first.requestedCount()).isEqualTo(6);
-        assertThat(first.processedCount()).isEqualTo(6);
-        assertThat(first.insertedCount()).isEqualTo(6);
+        assertThat(first.requestedCount()).isEqualTo(12);
+        assertThat(first.processedCount()).isEqualTo(12);
+        assertThat(first.insertedCount()).isEqualTo(12);
         assertThat(first.updatedCount()).isZero();
         assertThat(first.failedCount()).isZero();
-        assertThat(first.apiRequestCount()).isEqualTo(15);
+        assertThat(first.apiRequestCount()).isEqualTo(28);
         assertThat(stagingRepository.countBySyncRunIdAndProcessingStatus(
                 first.syncRunId(), StagingProcessingStatus.PROMOTED
-        )).isEqualTo(6);
+        )).isEqualTo(12);
         assertThat(errorRepository.countBySyncRunId(first.syncRunId())).isZero();
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(6);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM tourist_spot WHERE spot_type = 'STAMP_TARGET' AND stamp_enabled = TRUE",
                 Integer.class
-        )).isEqualTo(6);
+        )).isEqualTo(12);
         assertThat(imageRepository.count()).isPositive();
         assertThat(regionRepository.count()).isGreaterThan(3);
 
         TourSyncResult second = syncService.synchronize(command);
 
         assertThat(second.status()).isEqualTo(SyncRunStatus.SUCCEEDED);
-        assertThat(second.requestedCount()).isEqualTo(6);
-        assertThat(second.processedCount()).isEqualTo(6);
+        assertThat(second.requestedCount()).isEqualTo(12);
+        assertThat(second.processedCount()).isEqualTo(12);
         assertThat(second.insertedCount()).isZero();
         assertThat(second.updatedCount()).isZero();
         assertThat(second.failedCount()).isZero();
-        assertThat(second.apiRequestCount()).isEqualTo(3);
+        assertThat(second.apiRequestCount()).isEqualTo(4);
         assertThat(stagingRepository.countBySyncRunIdAndProcessingStatus(
                 second.syncRunId(), StagingProcessingStatus.PROMOTED
-        )).isEqualTo(6);
+        )).isEqualTo(12);
         assertThat(errorRepository.countBySyncRunId(second.syncRunId())).isZero();
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(6);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
 
         Long changedSpotId = spotRepository.findAll().get(0).getId();
         jdbcTemplate.update("UPDATE tourist_spot SET data_hash = ? WHERE id = ?", "0".repeat(64), changedSpotId);
@@ -102,8 +102,8 @@ class TourSyncPipelineLiveMySqlTest {
         assertThat(third.insertedCount()).isZero();
         assertThat(third.updatedCount()).isEqualTo(1);
         assertThat(third.failedCount()).isZero();
-        assertThat(third.apiRequestCount()).isEqualTo(5);
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(6);
+        assertThat(third.apiRequestCount()).isEqualTo(6);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
         assertThat(syncRunRepository.count()).isEqualTo(3);
     }
 }

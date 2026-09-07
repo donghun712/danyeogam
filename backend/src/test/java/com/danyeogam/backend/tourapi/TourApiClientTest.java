@@ -42,6 +42,7 @@ class TourApiClientTest {
                 .andExpect(queryParam("pageNo", "1"))
                 .andExpect(queryParam("numOfRows", "10"))
                 .andExpect(queryParam("areaCode", "1"))
+                .andExpect(queryParam("contentTypeId", "12"))
                 .andRespond(withSuccess("""
                         {
                           "response": {
@@ -69,7 +70,7 @@ class TourApiClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        TourApiPage<TouristSummary> page = client.getAreaBasedList(1, 10, "1");
+        TourApiPage<TouristSummary> page = client.getAreaBasedList(1, 10, "1", "12");
 
         assertThat(page.totalCount()).isEqualTo(1);
         assertThat(page.items()).singleElement().satisfies(spot -> {

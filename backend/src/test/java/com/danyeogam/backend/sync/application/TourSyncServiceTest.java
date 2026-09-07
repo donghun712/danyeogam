@@ -58,8 +58,10 @@ class TourSyncServiceTest {
         });
         when(client.getLegalDongCodes(isNull(), eq(1), eq(100)))
                 .thenReturn(new TourApiPage<>(1, 1, 100, List.of(new TourRegionCode("1", "서울특별시"))));
-        when(client.getAreaBasedList(1, 10, "1"))
+        when(client.getAreaBasedList(1, 10, "1", "12"))
                 .thenReturn(new TourApiPage<>(1, 1, 10, List.of(summary)));
+        when(client.getAreaBasedList(1, 10, "1", "14"))
+                .thenReturn(new TourApiPage<>(1, 0, 10, List.of()));
         when(client.getLegalDongCodes("1", 1, 1000))
                 .thenReturn(new TourApiPage<>(1, 1, 1000, List.of(new TourRegionCode("23", "종로구"))));
         when(persistence.stage(1L, summary)).thenReturn(StagingResult.accepted(11L, validated));
@@ -77,7 +79,7 @@ class TourSyncServiceTest {
         assertThat(result.processedCount()).isEqualTo(1);
         assertThat(result.insertedCount()).isEqualTo(1);
         assertThat(result.failedCount()).isZero();
-        assertThat(result.apiRequestCount()).isEqualTo(5);
+        assertThat(result.apiRequestCount()).isEqualTo(6);
         verify(persistence).upsertProvinces(List.of(new TourRegionCode("1", "서울특별시")));
         verify(persistence).upsertDistricts("1", List.of(new TourRegionCode("23", "종로구")));
     }

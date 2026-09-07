@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Profile;
 public class TourSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(TourSyncService.class);
+    private static final List<String> INCLUDED_CONTENT_TYPE_IDS = List.of("12", "14");
 
     private final TourApiClient tourApiClient;
     private final TourSyncPersistenceService persistence;
@@ -51,32 +52,35 @@ public class TourSyncService {
             Set<String> preparedDistrictAreas = new HashSet<>();
             prepareProvinces(run);
 
-            int pageNo = 1;
-            while (pageNo <= command.maxPages()) {
-                run.recordApiRequest();
-                TourApiPage<TouristSummary> page = tourApiClient.getAreaBasedList(
-                        pageNo,
-                        command.pageSize(),
-                        command.areaCode()
-                );
-                List<TouristSummary> items = page.items();
-                if (items.isEmpty()) {
-                    break;
-                }
+            for (String contentTypeId : INCLUDED_CONTENT_TYPE_IDS) {
+                int pageNo = 1;
+                while (pageNo <= command.maxPages()) {
+                    run.recordApiRequest();
+                    TourApiPage<TouristSummary> page = tourApiClient.getAreaBasedList(
+                            pageNo,
+                            command.pageSize(),
+                            command.areaCode(),
+                            contentTypeId
+                    );
+                    List<TouristSummary> items = page.items();
+                    if (items.isEmpty()) {
+                        break;
+                    }
 
-                run.recordRequested(items.size());
-                prepareDistricts(run, items, preparedDistrictAreas);
-                for (TouristSummary summary : items) {
-                    importOne(run, command, summary);
-                }
+                    run.recordRequested(items.size());
+                    prepareDistricts(run, items, preparedDistrictAreas);
+                    for (TouristSummary summary : items) {
+                        importOne(run, command, summary);
+                    }
 
-                if ((long) pageNo * command.pageSize() >= page.totalCount()) {
-                    break;
+                    if ((long) pageNo * command.pageSize() >= page.totalCount()) {
+                        break;
+                    }
+                    pageNo++;
                 }
-                pageNo++;
             }
 
-            run.finish("TourAPI 관광지 요약·상세·이미지 동기화 완료");
+            run.finish("TourAPI 관광지·문화시설 요약·상세·이미지 동기화 완료");
             syncRunRepository.save(run);
             log.info(
                     "TourAPI sync completed: syncRunId={}, status={}, requested={}, processed={}, inserted={}, updated={}, failed={}, apiRequests={}",

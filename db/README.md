@@ -3,9 +3,9 @@
 ## 파일
 
 - `danyeogam_schema.sql`: MySQL 8.4용 독립 실행형 초기 스키마
-- `danyeogam_tour_seed.sql`: 2026-09-05 전국 TourAPI 초기 카탈로그 데이터 덤프
+- `danyeogam_tour_seed.sql`: 2026-09-07 전국 관광지·문화시설 스탬프 카탈로그 데이터 덤프
 
-`danyeogam_tour_seed.sql` SHA-256: `190c56efc61556c52919d50b2605f4a2e546bf1b4311a342102b5de279b98e0b`
+`danyeogam_tour_seed.sql` SHA-256: `eaf60c2b5238047dffde67413aeba7aa98a79e6bed6bfead000271e7cda18c70`
 
 ## 생성되는 범위
 
@@ -56,13 +56,15 @@ SHOW INDEX FROM tourist_spot;
 - 같은 Actor와 관광지의 방문 재삽입 시 `visit`이 1건으로 유지됨
 - `verification_attempt`에 위도·경도·POINT 컬럼이 존재하지 않음
 
-2026-09-05에는 별도 검증 DB에 스키마와 전국 데이터 덤프를 순서대로 복원해 지역 284건, 관광지 48,717건과 공간 인덱스 1개를 확인했다. 검증용 임시 DB는 테스트 후 삭제했다.
+2026-09-05에는 별도 검증 DB에 스키마와 당시 전국 원본 데이터 덤프를 순서대로 복원했다.
 
-2026-09-07에는 빈 DB에 백엔드를 실행해 Flyway V1을 적용한 다음 데이터 덤프를 복원하고 백엔드를 재기동했다. 지역 284건, 관광지 48,717건, Flyway 성공 이력 1건과 공간 인덱스를 확인했다. 독립 SQL과 Flyway 스키마의 컬럼·인덱스·제약조건도 모두 일치했다.
+2026-09-07에는 스탬프 목적에 맞춰 관광지(12) 12,614건과 문화시설(14) 2,721건만 남긴 덤프를 새로 만들었다. 빈 DB에 백엔드를 실행해 Flyway V1을 적용한 다음 덤프를 복원하고 재기동했으며, 지역 284건, 장소 15,335건, Flyway 성공 이력 1건과 공간 인덱스 1개를 확인했다. 허용되지 않은 유형과 잘못된 좌표는 각각 0건이다.
 
 ## 중요한 정책
 
 - `tourist_spot.location`은 WGS84, SRID 4326, `NOT NULL`이다.
+- 스탬프 대상은 TourAPI 관광지 `12`와 문화시설 `14`만 허용한다.
+- 행사·축제 `15`, 여행코스 `25`, 레포츠 `28`, 숙박 `32`, 쇼핑 `38`, 음식점 `39`는 적재하지 않는다.
 - 좌표가 없거나 의심스러운 원본은 `tourist_spot_staging`에서 정제한 뒤 승격한다.
 - `visit(actor_id, tourist_spot_id)` 유니크 제약으로 장소당 최초 스탬프 한 번만 저장한다.
 - `verification_attempt(actor_id, idempotency_key)` 유니크 제약으로 재전송을 안전하게 처리한다.

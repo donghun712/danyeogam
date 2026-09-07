@@ -20,7 +20,7 @@ class TourApiLiveTest {
 
     @Test
     void issuedKeyCanReadKoreanTouristDataAndImages() {
-        TourApiPage<TouristSummary> summaries = client.getAreaBasedList(1, 30, null);
+        TourApiPage<TouristSummary> summaries = client.getAreaBasedList(1, 30, null, "12");
         assertThat(summaries.totalCount()).isPositive();
         assertThat(summaries.items()).isNotEmpty();
 

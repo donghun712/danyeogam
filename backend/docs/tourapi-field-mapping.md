@@ -7,11 +7,13 @@
 | 기능 | Operation | 기능 파라미터 |
 |---|---|---|
 | 광역·시군구 법정동 코드 | `ldongCode2` | 하위 지역 조회 시 `lDongRegnCd` |
-| 지역 기반 관광지 | `areaBasedList2` | `areaCode`, `arrange=C` |
+| 지역 기반 관광지·문화시설 | `areaBasedList2` | `areaCode`, `contentTypeId`, `arrange=C` |
 | 관광지 공통 상세 | `detailCommon2` | `contentId` |
 | 관광지 이미지 | `detailImage2` | `contentId` |
 
 모든 요청에는 `serviceKey`, `MobileOS`, `MobileApp`, `_type=json`, `pageNo`, `numOfRows`를 공통으로 전달한다. 현재 `detailImage2`에는 과거 파라미터인 `imageYN`, `subImageYN`을 전달하지 않는다.
+
+스탬프 서비스의 수집 허용 유형은 관광지 `12`와 문화시설 `14`다. 두 유형을 각각 `contentTypeId`로 지정해 조회한다. 행사·축제 `15`, 여행코스 `25`, 레포츠 `28`, 숙박 `32`, 쇼핑 `38`, 음식점 `39`은 요청하지 않으므로 staging과 서비스 테이블에도 새로 유입되지 않는다.
 
 ## 관광지 매핑
 

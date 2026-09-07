@@ -2,6 +2,8 @@
 
 두 API 모두 유효한 `dg_session` 쿠키가 필요하며 응답은 `Cache-Control: private, no-store`다. `credentials: "include"`를 사용한다.
 
+도감 분모와 목록은 활성화된 관광지(12)·문화시설(14) 스탬프 대상만 사용한다. 행사·축제, 여행코스, 레포츠, 숙박, 쇼핑, 음식점은 포함되지 않는다.
+
 ## 지역별 도감
 
 ```http
