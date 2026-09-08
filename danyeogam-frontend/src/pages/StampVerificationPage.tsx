@@ -7,6 +7,7 @@ import { StampRadar } from "@/components/stamp/StampRadar";
 import { StampMeasurementInfo } from "@/components/stamp/StampMeasurementInfo";
 import { useStampVerification } from "@/hooks/useStampVerification";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
+import { useCollectionSummary } from "@/hooks/useCollectionSummary";
 import { ROUTES } from "@/constants/routes";
 import styles from "./StampVerificationPage.module.css";
 
@@ -44,6 +45,12 @@ export function StampVerificationPage() {
     useStampVerification(spotId ?? -1);
   // 인장에 넣을 관광지명만 필요해서 STAMP-01 응답과 별개로 상세를 조회한다(이름 필드가 없음).
   const { detail } = useAttractionDetail(spotId);
+  // 지역 진행률("전북특별자치도 12/40") 표시용 — 기존 GET /me/collection/summary를 재사용하고,
+  // detail.regionCode와 정확히 일치하는 지역이 있을 때만 보여준다(임의 매칭/하드코딩 없음).
+  const { regions: summaryRegions } = useCollectionSummary();
+  const matchedRegionProgress = detail
+    ? (summaryRegions.find((region) => region.code === detail.regionCode) ?? null)
+    : null;
 
   if (spotId === null) {
     return (
@@ -116,6 +123,12 @@ export function StampVerificationPage() {
               </StampSealSparkles>
             )}
             <p className="text-body">방문 인증을 완료했어요!</p>
+            {matchedRegionProgress && (
+              <p className="text-h3">
+                {matchedRegionProgress.name} {matchedRegionProgress.visitedCount} /{" "}
+                {matchedRegionProgress.totalCount}
+              </p>
+            )}
             <div className={styles.actions}>
               <Button onClick={() => navigate(ROUTES.collection)}>
                 도감에서 확인하기

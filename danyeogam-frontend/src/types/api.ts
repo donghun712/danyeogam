@@ -108,6 +108,11 @@ export interface TouristSpotDetail {
   dataSource: string;
   dataQuality: DataQuality;
   lastSyncedAt: string;
+  /**
+   * PROVINCE 레벨 지역 코드(예: "TOUR:AREA:52"). GET /me/collection/summary의 regions[].code와
+   * 정확히 매칭된다 — 시/군/구 소속 관광지도 백엔드가 상위 광역 코드로 정규화해서 내려준다.
+   */
+  regionCode: string;
 }
 
 // ── 현재 좌표 주소 (POST /api/v1/geo/reverse) ────────────
