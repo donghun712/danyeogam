@@ -20,6 +20,7 @@ import com.danyeogam.backend.touristspot.application.dto.TouristSpotMapData;
 import com.danyeogam.backend.touristspot.application.dto.TouristSpotMapItemResponse;
 import com.danyeogam.backend.touristspot.config.MapQueryProperties;
 import com.danyeogam.backend.touristspot.domain.Region;
+import com.danyeogam.backend.touristspot.domain.RegionLevel;
 import com.danyeogam.backend.touristspot.domain.SpotType;
 import com.danyeogam.backend.touristspot.domain.TouristSpot;
 import com.danyeogam.backend.touristspot.domain.TouristSpotImage;
@@ -164,8 +165,22 @@ public class TouristSpotQueryService {
                 ),
                 "한국관광공사 TourAPI",
                 spot.getDetailHydratedAt() == null ? "PARTIAL" : "COMPLETE",
-                spot.getUpdatedAt() != null ? spot.getUpdatedAt() : spot.getSourceModifiedAt()
+                spot.getUpdatedAt() != null ? spot.getUpdatedAt() : spot.getSourceModifiedAt(),
+                resolveProvinceRegionCode(spot.getRegion())
         );
+    }
+
+    private static String resolveProvinceRegionCode(Region region) {
+        Set<String> visitedCodes = new HashSet<>();
+        for (Region current = region; current != null; current = current.getParent()) {
+            if (!visitedCodes.add(current.getCode())) {
+                break;
+            }
+            if (current.getLevel() == RegionLevel.PROVINCE) {
+                return current.getCode();
+            }
+        }
+        throw new IllegalStateException("관광지의 상위 광역 지역을 찾을 수 없습니다.");
     }
 
     private RegionResponse regionResponse(Region region, List<RegionResponse> children) {

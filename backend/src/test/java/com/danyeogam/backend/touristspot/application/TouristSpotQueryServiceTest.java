@@ -157,6 +157,7 @@ class TouristSpotQueryServiceTest {
         TouristSpotDetailResponse detail = service.getDetail(7L);
 
         assertThat(detail.dataQuality()).isEqualTo("COMPLETE");
+        assertThat(detail.regionCode()).isEqualTo("TOUR:AREA:1");
         assertThat(detail.images()).singleElement().satisfies(result -> {
             assertThat(result.alt()).isEqualTo("경복궁 전경");
             assertThat(result.copyrightType()).isEqualTo("Type1");
@@ -188,6 +189,40 @@ class TouristSpotQueryServiceTest {
         TouristSpotDetailResponse detail = service.getDetail(7L, 42L);
 
         assertThat(detail.visitState()).isEqualTo("NOT_VISITED");
+    }
+
+    @Test
+    void returnsProvinceCodeForCityCountySpot() {
+        Region province = Region.province("TOUR:AREA:45", "전북특별자치도");
+        Region district = Region.cityCounty("TOUR:AREA:45:111", "전주시", province);
+        TouristSpot spot = TouristSpot.fromTourApi(
+                "REGION-1", "12", "전주 관광지", district, point(127.148, 35.8242), "a".repeat(64)
+        );
+        ReflectionTestUtils.setField(spot, "id", 7L);
+        when(spotRepository.findByIdAndActiveTrue(7L)).thenReturn(Optional.of(spot));
+        when(imageRepository.findAllByTouristSpotIdOrderBySortOrderAscIdAsc(7L)).thenReturn(List.of());
+
+        assertThat(service.getDetail(7L).regionCode())
+                .isEqualTo(province.getCode())
+                .matches("^TOUR:AREA:[0-9]+$");
+        assertThat(service.getDetail(7L, 42L).regionCode()).isEqualTo(province.getCode());
+    }
+
+    @Test
+    void rejectsMissingProvinceAndCyclicHierarchyInsteadOfReturningDistrictCode() {
+        Region province = Region.province("TOUR:AREA:45", "전북특별자치도");
+        Region district = Region.cityCounty("TOUR:AREA:45:111", "전주시", province);
+        TouristSpot spot = TouristSpot.fromTourApi(
+                "REGION-2", "12", "전주 관광지", district, point(127.148, 35.8242), "a".repeat(64)
+        );
+        ReflectionTestUtils.setField(spot, "id", 7L);
+        when(spotRepository.findByIdAndActiveTrue(7L)).thenReturn(Optional.of(spot));
+        when(imageRepository.findAllByTouristSpotIdOrderBySortOrderAscIdAsc(7L)).thenReturn(List.of());
+
+        ReflectionTestUtils.setField(district, "parent", null);
+        assertThatThrownBy(() -> service.getDetail(7L)).isInstanceOf(IllegalStateException.class);
+        ReflectionTestUtils.setField(district, "parent", district);
+        assertThatThrownBy(() -> service.getDetail(7L)).isInstanceOf(IllegalStateException.class);
     }
 
     private static MapBounds bounds() {

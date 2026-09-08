@@ -133,7 +133,8 @@ GET /api/v1/tourist-spots/12031
     },
     "dataSource": "한국관광공사 TourAPI",
     "dataQuality": "COMPLETE",
-    "lastSyncedAt": "2026-09-03T00:00:00Z"
+    "lastSyncedAt": "2026-09-03T00:00:00Z",
+    "regionCode": "TOUR:AREA:1"
   },
   "meta": {
     "requestId": "...",
@@ -143,6 +144,9 @@ GET /api/v1/tourist-spots/12031
 ```
 
 `dataQuality`가 `PARTIAL`이면 상세 보강 전 데이터이며 nullable 필드가 있을 수 있다. `navigation` 좌표를 카카오내비 목적지에 전달하되 프론트의 카카오 JavaScript 키와 서버 REST 키를 혼동하지 않는다.
+
+`regionCode`는 시·군·구에 속한 관광지라도 상위 PROVINCE 코드를 반환한다.
+형식은 `TOUR:AREA:숫자`이며 `GET /api/v1/me/collection/summary`의 `regions[].code`와 그대로 비교한다.
 
 ## 오류 코드
 
