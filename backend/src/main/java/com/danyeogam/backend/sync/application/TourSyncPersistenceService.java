@@ -20,6 +20,7 @@ import com.danyeogam.backend.stamp.config.StampVerificationProperties;
 import com.danyeogam.backend.tourapi.TourRegionCode;
 import com.danyeogam.backend.tourapi.TouristDetail;
 import com.danyeogam.backend.tourapi.TouristImage;
+import com.danyeogam.backend.tourapi.TouristIntro;
 import com.danyeogam.backend.tourapi.TouristSummary;
 import com.danyeogam.backend.touristspot.domain.Region;
 import com.danyeogam.backend.touristspot.domain.SpotType;
@@ -176,6 +177,13 @@ class TourSyncPersistenceService {
                 .orElse(false);
     }
 
+    @Transactional(readOnly = true)
+    boolean needsIntroHydration(TouristSummary summary) {
+        return spotRepository.findBySourceAndSourceContentId("TOUR_API", summary.contentId())
+                .map(spot -> spot.getIntroHydratedAt() == null)
+                .orElse(true);
+    }
+
     @Transactional
     void markPromoted(long stagingId) {
         stagingRepository.findById(stagingId).orElseThrow().markPromoted();
@@ -187,6 +195,7 @@ class TourSyncPersistenceService {
             TouristSummary summary,
             ValidatedTouristSpot validated,
             TouristDetail detail,
+            TouristIntro intro,
             List<TouristImage> images
     ) {
         TouristSpotStaging staging = stagingRepository.findById(stagingId).orElseThrow();
@@ -234,6 +243,17 @@ class TourSyncPersistenceService {
                     truncate(detail.telephone(), 100),
                     detail.firstThumbnailUrl(),
                     detail.firstImageUrl(),
+                    Instant.now()
+            );
+        }
+        if (intro != null) {
+            spot.hydrateIntro(
+                    sanitizer.plainText(intro.operatingHours()),
+                    sanitizer.plainText(intro.closedDays()),
+                    sanitizer.plainText(intro.parkingNote()),
+                    sanitizer.plainText(intro.parkingFeeNote()),
+                    sanitizer.plainText(intro.strollerRentalNote()),
+                    sanitizer.plainText(intro.petAllowedNote()),
                     Instant.now()
             );
         }

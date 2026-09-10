@@ -24,7 +24,9 @@ public record TouristSpotDetailResponse(
         @Schema(description = "PROVINCE 레벨 지역 코드. 도감 요약 regions[].code와 연결한다.",
                 example = "TOUR:AREA:52", pattern = "^TOUR:AREA:[0-9]+$",
                 requiredMode = Schema.RequiredMode.REQUIRED)
-        String regionCode
+        String regionCode,
+        OperatingInfoResponse operatingInfo,
+        FacilityInfoResponse facilityInfo
 ) {
     public TouristSpotDetailResponse {
         images = List.copyOf(images);

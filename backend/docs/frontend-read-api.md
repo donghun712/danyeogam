@@ -134,7 +134,26 @@ GET /api/v1/tourist-spots/12031
     "dataSource": "한국관광공사 TourAPI",
     "dataQuality": "COMPLETE",
     "lastSyncedAt": "2026-09-03T00:00:00Z",
-    "regionCode": "TOUR:AREA:1"
+    "regionCode": "TOUR:AREA:1",
+    "operatingInfo": {
+      "hours": "09:00~18:00",
+      "closedDays": "연중무휴"
+    },
+    "facilityInfo": {
+      "parking": {
+        "status": "AVAILABLE",
+        "note": "가능요금 (무료)"
+      },
+      "parkingFeeNote": null,
+      "strollerRental": {
+        "status": "UNKNOWN",
+        "note": "없음"
+      },
+      "petAllowed": {
+        "status": "UNKNOWN",
+        "note": null
+      }
+    }
   },
   "meta": {
     "requestId": "...",
@@ -147,6 +166,10 @@ GET /api/v1/tourist-spots/12031
 
 `regionCode`는 시·군·구에 속한 관광지라도 상위 PROVINCE 코드를 반환한다.
 형식은 `TOUR:AREA:숫자`이며 `GET /api/v1/me/collection/summary`의 `regions[].code`와 그대로 비교한다.
+
+`operatingInfo`와 `facilityInfo`는 TourAPI `detailIntro2` 소개정보를 보강한 장소에만 객체로 내려가며, 아직 보강되지 않았거나 소개정보가 없으면 `null`이다. 운영시간·휴무일과 시설 `note`는 원문이며 빈 문자열은 `null`로 정규화한다.
+
+시설 `status`는 원문이 `가능`으로 시작하면 `AVAILABLE`, `불가능` 또는 `불가`로 시작하면 `UNAVAILABLE`, 나머지는 `UNKNOWN`이다. `UNKNOWN`이어도 `없음`처럼 원문이 있으면 `note`를 반드시 표시하거나 보존한다. `parkingFeeNote`는 문화시설의 주차요금 원문이고 관광지 타입에서는 `null`이다. 휠체어 정보는 `detailIntro2`에 없어 현재 응답에 포함하지 않는다.
 
 ## 오류 코드
 

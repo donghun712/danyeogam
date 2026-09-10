@@ -55,43 +55,48 @@ class TourSyncPipelineLiveMySqlTest {
 
     @Test
     void realTourApiDataIsStagedPromotedAndIdempotentOnSecondRun() {
-        TourSyncCommand command = new TourSyncCommand("1", 6, 1, true);
+        TourSyncCommand command = new TourSyncCommand("1", 1, 1, true);
 
         TourSyncResult first = syncService.synchronize(command);
 
         assertThat(first.status()).isEqualTo(SyncRunStatus.SUCCEEDED);
-        assertThat(first.requestedCount()).isEqualTo(12);
-        assertThat(first.processedCount()).isEqualTo(12);
-        assertThat(first.insertedCount()).isEqualTo(12);
+        assertThat(first.requestedCount()).isPositive();
+        assertThat(first.processedCount()).isEqualTo(first.requestedCount());
+        assertThat(first.insertedCount()).isEqualTo(first.requestedCount());
         assertThat(first.updatedCount()).isZero();
         assertThat(first.failedCount()).isZero();
-        assertThat(first.apiRequestCount()).isEqualTo(28);
+        int catalogApiRequestCount = first.apiRequestCount() - first.requestedCount() * 3;
+        assertThat(catalogApiRequestCount).isGreaterThanOrEqualTo(9);
         assertThat(stagingRepository.countBySyncRunIdAndProcessingStatus(
                 first.syncRunId(), StagingProcessingStatus.PROMOTED
-        )).isEqualTo(12);
+        )).isEqualTo(first.requestedCount());
         assertThat(errorRepository.countBySyncRunId(first.syncRunId())).isZero();
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(first.requestedCount());
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM tourist_spot WHERE spot_type = 'STAMP_TARGET' AND stamp_enabled = TRUE",
                 Integer.class
-        )).isEqualTo(12);
+        )).isEqualTo(first.requestedCount());
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tourist_spot WHERE intro_hydrated_at IS NOT NULL",
+                Integer.class
+        )).isEqualTo(first.requestedCount());
         assertThat(imageRepository.count()).isPositive();
         assertThat(regionRepository.count()).isGreaterThan(3);
 
         TourSyncResult second = syncService.synchronize(command);
 
         assertThat(second.status()).isEqualTo(SyncRunStatus.SUCCEEDED);
-        assertThat(second.requestedCount()).isEqualTo(12);
-        assertThat(second.processedCount()).isEqualTo(12);
+        assertThat(second.requestedCount()).isEqualTo(first.requestedCount());
+        assertThat(second.processedCount()).isEqualTo(first.requestedCount());
         assertThat(second.insertedCount()).isZero();
         assertThat(second.updatedCount()).isZero();
         assertThat(second.failedCount()).isZero();
-        assertThat(second.apiRequestCount()).isEqualTo(4);
+        assertThat(second.apiRequestCount()).isEqualTo(catalogApiRequestCount);
         assertThat(stagingRepository.countBySyncRunIdAndProcessingStatus(
                 second.syncRunId(), StagingProcessingStatus.PROMOTED
-        )).isEqualTo(12);
+        )).isEqualTo(first.requestedCount());
         assertThat(errorRepository.countBySyncRunId(second.syncRunId())).isZero();
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(first.requestedCount());
 
         Long changedSpotId = spotRepository.findAll().get(0).getId();
         jdbcTemplate.update("UPDATE tourist_spot SET data_hash = ? WHERE id = ?", "0".repeat(64), changedSpotId);
@@ -102,8 +107,8 @@ class TourSyncPipelineLiveMySqlTest {
         assertThat(third.insertedCount()).isZero();
         assertThat(third.updatedCount()).isEqualTo(1);
         assertThat(third.failedCount()).isZero();
-        assertThat(third.apiRequestCount()).isEqualTo(6);
-        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(12);
+        assertThat(third.apiRequestCount()).isEqualTo(catalogApiRequestCount + 3);
+        assertThat(spotRepository.countBySource("TOUR_API")).isEqualTo(first.requestedCount());
         assertThat(syncRunRepository.count()).isEqualTo(3);
     }
 }

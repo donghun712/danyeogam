@@ -9,6 +9,7 @@
 | 광역·시군구 법정동 코드 | `ldongCode2` | 하위 지역 조회 시 `lDongRegnCd` |
 | 선정 관광지 목록 | `areaBasedList2` | `areaCode`, `contentTypeId`, `lclsSystm1/2/3`, `arrange=C` |
 | 관광지 공통 상세 | `detailCommon2` | `contentId` |
+| 관광지 소개정보 | `detailIntro2` | `contentId`, `contentTypeId` |
 | 관광지 이미지 | `detailImage2` | `contentId` |
 
 모든 요청에는 `serviceKey`, `MobileOS`, `MobileApp`, `_type=json`, `pageNo`, `numOfRows`를 공통으로 전달한다. 현재 `detailImage2`에는 과거 파라미터인 `imageYN`, `subImageYN`을 전달하지 않는다.
@@ -67,11 +68,27 @@
 
 `detailImage2`가 빈 목록이어도 목록 응답에 `firstimage`가 있으면 대표 이미지를 첫 번째 이미지로 저장한다. 어느 응답에도 이미지가 없으면 관광지는 정상 적재하고 이미지 목록은 비워 둔다.
 
+## 소개정보 매핑
+
+`detailIntro2`는 `contentTypeId`에 따라 필드명이 다르다. 2026-09-10 관광지와 문화시설 각 8건의 실제 응답으로 다음 필드를 확인했다.
+
+| API 응답 의미 | 관광지 12 | 문화시설 14 | DB 필드 |
+|---|---|---|---|
+| 운영시간 | `usetime` | `usetimeculture` | `operating_hours` |
+| 휴무일 | `restdate` | `restdateculture` | `closed_days` |
+| 주차 | `parking` | `parkingculture` | `parking_note` |
+| 주차요금 | 없음 | `parkingfee` | `parking_fee_note` |
+| 유모차 대여 | `chkbabycarriage` | `chkbabycarriageculture` | `stroller_rental_note` |
+| 반려동물 | `chkpet` | `chkpetculture` | `pet_allowed_note` |
+
+모든 값은 자유 형식 문자열이며 빈 문자열과 공백만 있는 값은 `null`로 저장한다. `가능`으로 시작하면 `AVAILABLE`, `불가능` 또는 `불가`로 시작하면 `UNAVAILABLE`, 나머지는 `UNKNOWN`으로 응답하되 원문은 항상 `note`에 보존한다. `detailIntro2`에는 휠체어 필드가 없어 현재 범위에서 제외한다. 소개정보를 정상 수집한 시각은 `intro_hydrated_at`에 기록한다.
+
 ## staging과 재실행
 
 - 각 실행은 `sync_run` 한 건을 생성한다.
 - 목록 원문 JSON은 `tourist_spot_staging.raw_payload`에 저장한다.
 - 선정 분류, 필수값, 좌표가 정상인 건만 `PROMOTED` 상태로 승격한다.
-- 원문 SHA-256 해시와 저장된 분류가 같으면 상세·이미지를 다시 요청하지 않는다.
+- 원문 SHA-256 해시와 저장된 분류가 같으면 공통 상세·이미지를 다시 요청하지 않는다.
+- 기존 장소의 `intro_hydrated_at`이 비어 있으면 원문 해시가 같아도 `detailIntro2`만 요청해 운영·시설정보를 보강한다.
 - 해시 또는 분류가 달라지면 동일 관광지를 신규 삽입하지 않고 갱신한다.
 - 검증·외부 API·승격 오류는 `sync_error`에 기록한다.

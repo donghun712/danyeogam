@@ -41,6 +41,19 @@ class TourApiLiveTest {
                 .isPresent();
     }
 
+    @Test
+    void issuedKeyCanReadTouristAndCultureIntroFields() {
+        TouristIntro tourist = client.getIntroDetail("2818242", "12").orElseThrow();
+        assertThat(tourist.operatingHours()).isEqualTo("상시 개방");
+        assertThat(tourist.closedDays()).isEqualTo("연중무휴");
+
+        TouristIntro culture = client.getIntroDetail("2549836", "14").orElseThrow();
+        assertThat(culture.operatingHours()).isEqualTo("10:00~18:00");
+        assertThat(culture.closedDays()).isEqualTo("연중무휴");
+        assertThat(culture.parkingFeeNote()).isEqualTo("무료");
+        assertThat(culture.strollerRentalNote()).isEqualTo("불가");
+    }
+
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
     }

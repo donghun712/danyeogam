@@ -19,7 +19,7 @@
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
-빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
+빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2·V3 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
 
 ```powershell
 mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE C:/관광데이터/db/danyeogam_tour_seed.sql"
@@ -84,4 +84,4 @@ SHOW INDEX FROM tourist_spot;
 
 키 원문은 SQL 파일이나 DB 일반 테이블에 저장하지 않고 배포 환경의 Secret으로 주입한다.
 
-백엔드에서는 `V1__init_schema.sql`과 `V2__add_tour_classification.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.
+백엔드에서는 `V1__init_schema.sql`, `V2__add_tour_classification.sql`, `V3__add_operating_facility_info.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.

@@ -183,6 +183,23 @@ public class TourApiClient {
         )).items().stream().findFirst();
     }
 
+    public Optional<TouristIntro> getIntroDetail(String contentId, String contentTypeId) {
+        if (!StringUtils.hasText(contentId)) {
+            throw new IllegalArgumentException("contentId는 필수입니다.");
+        }
+        if (!"12".equals(contentTypeId) && !"14".equals(contentTypeId)) {
+            throw new IllegalArgumentException("detailIntro2는 관광지(12)와 문화시설(14)만 지원합니다.");
+        }
+
+        JsonNode body = get("/detailIntro2", uriBuilder -> commonQuery(uriBuilder, 1, 10)
+                .queryParam("contentId", contentId)
+                .queryParam("contentTypeId", contentTypeId)
+                .build());
+
+        return toPage(body, item -> intro(item, contentTypeId))
+                .items().stream().findFirst();
+    }
+
     public TourApiPage<TouristImage> getImages(String contentId, int pageNo, int numOfRows) {
         if (!StringUtils.hasText(contentId)) {
             throw new IllegalArgumentException("contentId는 필수입니다.");
@@ -269,6 +286,31 @@ public class TourApiClient {
     private static String text(JsonNode node, String fieldName) {
         JsonNode value = node.path(fieldName);
         return value.isMissingNode() || value.isNull() ? null : value.asText();
+    }
+
+    private static TouristIntro intro(JsonNode item, String contentTypeId) {
+        if ("12".equals(contentTypeId)) {
+            return new TouristIntro(
+                    text(item, "contentid"),
+                    text(item, "contenttypeid"),
+                    text(item, "usetime"),
+                    text(item, "restdate"),
+                    text(item, "parking"),
+                    null,
+                    text(item, "chkbabycarriage"),
+                    text(item, "chkpet")
+            );
+        }
+        return new TouristIntro(
+                text(item, "contentid"),
+                text(item, "contenttypeid"),
+                text(item, "usetimeculture"),
+                text(item, "restdateculture"),
+                text(item, "parkingculture"),
+                text(item, "parkingfee"),
+                text(item, "chkbabycarriageculture"),
+                text(item, "chkpetculture")
+        );
     }
 
     private static String legalProvinceCode(JsonNode item) {

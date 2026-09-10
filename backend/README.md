@@ -15,7 +15,7 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 - 로컬 MySQL 8.4 Docker Compose
 - 한국관광공사 국문 관광정보 `KorService2` 클라이언트
 - 역사유적·역사유물·선정 문화시설 및 대표 이미지 조회
-- 관광지별 상세 이미지와 저작권 유형 조회
+- 관광지별 운영시간·휴무일·시설정보, 상세 이미지와 저작권 유형 조회
 - 공통 성공·오류 JSON 응답과 필드 검증 오류
 - 안전한 `X-Request-Id` 전달·생성 및 MDC 정리
 - 지역·관광지·이미지 JPA 엔티티와 Repository
@@ -239,7 +239,7 @@ $env:SPRING_PROFILES_ACTIVE='local'
 .\gradlew.bat bootRun
 ```
 
-위 값은 전국 목록만 갱신하는 권장 예다. 빈 `TOUR_SYNC_AREA_CODE`는 전국을 뜻하며, 모든 선정 조건의 마지막 페이지까지 읽었을 때만 기존 비선정 TourAPI 행을 비활성화한다. 특정 지역이나 제한된 페이지로 실행하면 전역 비활성화는 하지 않는다. 장소별 상세 설명과 추가 이미지 전체 수집은 호출량을 확인한 뒤 `TOUR_SYNC_HYDRATE_DETAILS=true`로 증분 실행한다. 선정 정책은 `docs/tourist-spot-selection-policy.md`, 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
+위 값은 전국 목록만 갱신하는 권장 예다. 빈 `TOUR_SYNC_AREA_CODE`는 전국을 뜻하며, 모든 선정 조건의 마지막 페이지까지 읽었을 때만 기존 비선정 TourAPI 행을 비활성화한다. 특정 지역이나 제한된 페이지로 실행하면 전역 비활성화는 하지 않는다. 장소별 상세 설명, 소개정보와 추가 이미지 전체 수집은 호출량을 확인한 뒤 `TOUR_SYNC_HYDRATE_DETAILS=true`로 증분 실행한다. 목록 원문이 변경되지 않았더라도 소개정보 미수집 장소에는 `detailIntro2`만 호출해 보강한다. 선정 정책은 `docs/tourist-spot-selection-policy.md`, 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
 
 ## 다음 단계
 

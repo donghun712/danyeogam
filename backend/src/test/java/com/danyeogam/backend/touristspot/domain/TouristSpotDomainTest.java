@@ -3,6 +3,8 @@ package com.danyeogam.backend.touristspot.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -99,6 +101,27 @@ class TouristSpotDomainTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("0 이상");
+    }
+
+    @Test
+    void hydratesIntroAndConvertsBlankValuesToNull() {
+        TouristSpot spot = TouristSpot.fromTourApi(
+                "126508", "12", "경복궁", Region.province("1", "서울특별시"),
+                point(126.9769, 37.5788, 4326), HASH
+        );
+        Instant hydratedAt = Instant.parse("2026-09-10T00:00:00Z");
+
+        spot.hydrateIntro(
+                "09:00~18:00", "연중무휴", "가능요금 (무료)", " ",
+                "없음", "", hydratedAt
+        );
+
+        assertThat(spot.getOperatingHours()).isEqualTo("09:00~18:00");
+        assertThat(spot.getParkingNote()).isEqualTo("가능요금 (무료)");
+        assertThat(spot.getParkingFeeNote()).isNull();
+        assertThat(spot.getStrollerRentalNote()).isEqualTo("없음");
+        assertThat(spot.getPetAllowedNote()).isNull();
+        assertThat(spot.getIntroHydratedAt()).isEqualTo(hydratedAt);
     }
 
     private static Point point(double longitude, double latitude, int srid) {

@@ -483,8 +483,58 @@ components:
           description: "PROVINCE 레벨 지역 코드. 도감 요약 regions[].code와 연결한다."
           example: TOUR:AREA:52
           pattern: "^TOUR:AREA:[0-9]+$"
+        operatingInfo:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/OperatingInfoResponse"
+        facilityInfo:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/FacilityInfoResponse"
       required:
       - regionCode
+    OperatingInfoResponse:
+      type: object
+      properties:
+        hours:
+          type: string
+          nullable: true
+          description: TourAPI 운영시간 원문. 정보가 없으면 null.
+          example: 09:00~18:00
+        closedDays:
+          type: string
+          nullable: true
+          description: TourAPI 휴무일 원문. 정보가 없으면 null.
+          example: 연중무휴
+    FacilityStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [AVAILABLE, UNAVAILABLE, UNKNOWN]
+        note:
+          type: string
+          nullable: true
+          description: TourAPI 원문. UNKNOWN이어도 원문이 있으면 유지한다.
+      required:
+      - status
+    FacilityInfoResponse:
+      type: object
+      properties:
+        parking:
+          $ref: "#/components/schemas/FacilityStatusResponse"
+        parkingFeeNote:
+          type: string
+          nullable: true
+          description: 문화시설 주차요금 원문. 관광지 타입에는 null.
+        strollerRental:
+          $ref: "#/components/schemas/FacilityStatusResponse"
+        petAllowed:
+          $ref: "#/components/schemas/FacilityStatusResponse"
+      required:
+      - parking
+      - strollerRental
+      - petAllowed
     TouristSpotImageResponse:
       type: object
       properties:

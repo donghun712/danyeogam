@@ -147,6 +147,10 @@ class TouristSpotQueryServiceTest {
                 "조선 왕조의 법궁", "https://example.com", "02-0000-0000",
                 "thumb", "original", Instant.parse("2026-01-02T00:00:00Z")
         );
+        spot.hydrateIntro(
+                "09:00~18:00", "연중무휴", "가능요금 (무료)", null,
+                "없음", "", Instant.parse("2026-01-02T00:00:00Z")
+        );
         ReflectionTestUtils.setField(spot, "id", 7L);
         TouristSpotImage image = new TouristSpotImage(
                 spot, "https://image.test/original.jpg", "경복궁 전경", 0, "Type1", "1"
@@ -164,6 +168,13 @@ class TouristSpotQueryServiceTest {
         });
         assertThat(detail.navigation().coordinateType()).isEqualTo("wgs84");
         assertThat(detail.position().latitude()).isEqualByComparingTo("37.5788");
+        assertThat(detail.operatingInfo().hours()).isEqualTo("09:00~18:00");
+        assertThat(detail.facilityInfo().parking().status()).isEqualTo("AVAILABLE");
+        assertThat(detail.facilityInfo().parking().note()).isEqualTo("가능요금 (무료)");
+        assertThat(detail.facilityInfo().strollerRental().status()).isEqualTo("UNKNOWN");
+        assertThat(detail.facilityInfo().strollerRental().note()).isEqualTo("없음");
+        assertThat(detail.facilityInfo().petAllowed().status()).isEqualTo("UNKNOWN");
+        assertThat(detail.facilityInfo().petAllowed().note()).isNull();
     }
 
     @Test

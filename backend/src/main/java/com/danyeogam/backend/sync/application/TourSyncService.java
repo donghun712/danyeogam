@@ -14,6 +14,7 @@ import com.danyeogam.backend.tourapi.TourApiException;
 import com.danyeogam.backend.tourapi.TourApiPage;
 import com.danyeogam.backend.tourapi.TouristDetail;
 import com.danyeogam.backend.tourapi.TouristImage;
+import com.danyeogam.backend.tourapi.TouristIntro;
 import com.danyeogam.backend.tourapi.TouristSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,16 +168,21 @@ public class TourSyncService {
             return;
         }
 
-        if (persistence.isUnchanged(summary, staging.validated().dataHash())) {
+        boolean unchanged = persistence.isUnchanged(summary, staging.validated().dataHash());
+        boolean introHydrationRequired = command.hydrateDetails()
+                && unchanged
+                && persistence.needsIntroHydration(summary);
+        if (unchanged && !introHydrationRequired) {
             persistence.markPromoted(staging.stagingId());
             run.recordProcessed();
             return;
         }
 
         TouristDetail detail = null;
+        TouristIntro intro = null;
         List<TouristImage> images = null;
         boolean partialFailure = false;
-        if (command.hydrateDetails()) {
+        if (command.hydrateDetails() && !unchanged) {
             run.recordApiRequest();
             try {
                 Optional<TouristDetail> response = tourApiClient.getCommonDetail(summary.contentId());
@@ -203,12 +209,34 @@ public class TourSyncService {
             }
         }
 
+        if (command.hydrateDetails() && (!unchanged || introHydrationRequired)) {
+            run.recordApiRequest();
+            try {
+                Optional<TouristIntro> response = tourApiClient.getIntroDetail(
+                        summary.contentId(), summary.contentTypeId()
+                );
+                if (response.isPresent()) {
+                    intro = response.get();
+                } else {
+                    partialFailure = true;
+                    persistence.recordItemError(
+                            run.getId(), staging.stagingId(), summary.contentId(),
+                            "INTRO_NOT_FOUND", "TourAPI 소개정보가 없습니다.", false, false
+                    );
+                }
+            } catch (TourApiException exception) {
+                partialFailure = true;
+                recordExternalError(run, staging, summary, "INTRO_FETCH_FAILED", exception);
+            }
+        }
+
         try {
             ImportOutcome outcome = persistence.promote(
                     staging.stagingId(),
                     summary,
                     staging.validated(),
                     detail,
+                    intro,
                     images
             );
             run.recordProcessed();

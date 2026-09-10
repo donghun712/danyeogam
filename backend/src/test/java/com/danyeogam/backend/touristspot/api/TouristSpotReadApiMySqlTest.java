@@ -80,6 +80,10 @@ class TouristSpotReadApiMySqlTest {
                 "https://image.test/thumb.jpg", "https://image.test/original.jpg",
                 Instant.parse("2026-09-02T00:00:00Z")
         );
+        insideSpot.hydrateIntro(
+                "09:00~18:00", "연중무휴", "불가능", null,
+                "가능", "없음", Instant.parse("2026-09-02T00:00:00Z")
+        );
         insideSpot = spotRepository.saveAndFlush(insideSpot);
         imageRepository.saveAndFlush(new TouristSpotImage(
                 insideSpot, "https://image.test/original.jpg", "관광지 전경", 0, "Type1", "READ-IMG-1"
@@ -121,7 +125,14 @@ class TouristSpotReadApiMySqlTest {
                 .andExpect(jsonPath("$.data.overview").value("상세 설명"))
                 .andExpect(jsonPath("$.data.images[0].copyrightType").value("Type1"))
                 .andExpect(jsonPath("$.data.navigation.coordinateType").value("wgs84"))
-                .andExpect(jsonPath("$.data.dataQuality").value("COMPLETE"));
+                .andExpect(jsonPath("$.data.dataQuality").value("COMPLETE"))
+                .andExpect(jsonPath("$.data.operatingInfo.hours").value("09:00~18:00"))
+                .andExpect(jsonPath("$.data.operatingInfo.closedDays").value("연중무휴"))
+                .andExpect(jsonPath("$.data.facilityInfo.parking.status").value("UNAVAILABLE"))
+                .andExpect(jsonPath("$.data.facilityInfo.parking.note").value("불가능"))
+                .andExpect(jsonPath("$.data.facilityInfo.strollerRental.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.data.facilityInfo.petAllowed.status").value("UNKNOWN"))
+                .andExpect(jsonPath("$.data.facilityInfo.petAllowed.note").value("없음"));
 
         List<String> usedKeys = jdbcTemplate.query(
                 """

@@ -10,6 +10,9 @@ import java.util.Set;
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
 import com.danyeogam.backend.touristspot.application.dto.NavigationDestinationResponse;
+import com.danyeogam.backend.touristspot.application.dto.FacilityInfoResponse;
+import com.danyeogam.backend.touristspot.application.dto.FacilityStatusResponse;
+import com.danyeogam.backend.touristspot.application.dto.OperatingInfoResponse;
 import com.danyeogam.backend.touristspot.application.dto.PositionResponse;
 import com.danyeogam.backend.touristspot.application.dto.RegionListData;
 import com.danyeogam.backend.touristspot.application.dto.RegionResponse;
@@ -166,8 +169,48 @@ public class TouristSpotQueryService {
                 "한국관광공사 TourAPI",
                 spot.getDetailHydratedAt() == null ? "PARTIAL" : "COMPLETE",
                 spot.getUpdatedAt() != null ? spot.getUpdatedAt() : spot.getSourceModifiedAt(),
-                resolveProvinceRegionCode(spot.getRegion())
+                resolveProvinceRegionCode(spot.getRegion()),
+                operatingInfo(spot),
+                facilityInfo(spot)
         );
+    }
+
+    private static OperatingInfoResponse operatingInfo(TouristSpot spot) {
+        if (spot.getIntroHydratedAt() == null) {
+            return null;
+        }
+        String hours = blankToNull(spot.getOperatingHours());
+        String closedDays = blankToNull(spot.getClosedDays());
+        return hours == null && closedDays == null
+                ? null
+                : new OperatingInfoResponse(hours, closedDays);
+    }
+
+    private static FacilityInfoResponse facilityInfo(TouristSpot spot) {
+        if (spot.getIntroHydratedAt() == null) {
+            return null;
+        }
+        return new FacilityInfoResponse(
+                facilityStatus(spot.getParkingNote()),
+                blankToNull(spot.getParkingFeeNote()),
+                facilityStatus(spot.getStrollerRentalNote()),
+                facilityStatus(spot.getPetAllowedNote())
+        );
+    }
+
+    private static FacilityStatusResponse facilityStatus(String rawNote) {
+        String note = blankToNull(rawNote);
+        if (note == null) {
+            return new FacilityStatusResponse("UNKNOWN", null);
+        }
+        String normalized = note.stripLeading();
+        if (normalized.startsWith("불가능") || normalized.startsWith("불가")) {
+            return new FacilityStatusResponse("UNAVAILABLE", note);
+        }
+        if (normalized.startsWith("가능")) {
+            return new FacilityStatusResponse("AVAILABLE", note);
+        }
+        return new FacilityStatusResponse("UNKNOWN", note);
     }
 
     private static String resolveProvinceRegionCode(Region region) {

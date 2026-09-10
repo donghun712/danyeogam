@@ -287,6 +287,89 @@ class TourApiClientTest {
     }
 
     @Test
+    void readsTouristIntroAndNormalizesBlankValues() {
+        server.expect(requestTo(org.hamcrest.Matchers.containsString("/detailIntro2")))
+                .andExpect(queryParam("contentId", "2818242"))
+                .andExpect(queryParam("contentTypeId", "12"))
+                .andRespond(withSuccess("""
+                        {
+                          "response": {
+                            "header": {"resultCode": "0000", "resultMsg": "OK"},
+                            "body": {
+                              "items": {"item": {
+                                "contentid": "2818242",
+                                "contenttypeid": "12",
+                                "usetime": "상시 개방",
+                                "restdate": "연중무휴",
+                                "parking": "가능요금 (무료)",
+                                "chkbabycarriage": "   ",
+                                "chkpet": ""
+                              }},
+                              "numOfRows": 10,
+                              "pageNo": 1,
+                              "totalCount": 1
+                            }
+                          }
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        TouristIntro intro = client.getIntroDetail("2818242", "12").orElseThrow();
+
+        assertThat(intro.operatingHours()).isEqualTo("상시 개방");
+        assertThat(intro.closedDays()).isEqualTo("연중무휴");
+        assertThat(intro.parkingNote()).isEqualTo("가능요금 (무료)");
+        assertThat(intro.parkingFeeNote()).isNull();
+        assertThat(intro.strollerRentalNote()).isNull();
+        assertThat(intro.petAllowedNote()).isNull();
+        server.verify();
+    }
+
+    @Test
+    void readsCultureIntroUsingCultureSpecificFields() {
+        server.expect(requestTo(org.hamcrest.Matchers.containsString("/detailIntro2")))
+                .andExpect(queryParam("contentId", "2549836"))
+                .andExpect(queryParam("contentTypeId", "14"))
+                .andRespond(withSuccess("""
+                        {
+                          "response": {
+                            "header": {"resultCode": "0000", "resultMsg": "OK"},
+                            "body": {
+                              "items": {"item": {
+                                "contentid": "2549836",
+                                "contenttypeid": "14",
+                                "usetimeculture": "10:00~18:00",
+                                "restdateculture": "연중무휴",
+                                "parkingculture": "",
+                                "parkingfee": "무료",
+                                "chkbabycarriageculture": "불가",
+                                "chkpetculture": "없음"
+                              }},
+                              "numOfRows": 10,
+                              "pageNo": 1,
+                              "totalCount": 1
+                            }
+                          }
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        TouristIntro intro = client.getIntroDetail("2549836", "14").orElseThrow();
+
+        assertThat(intro.operatingHours()).isEqualTo("10:00~18:00");
+        assertThat(intro.parkingNote()).isNull();
+        assertThat(intro.parkingFeeNote()).isEqualTo("무료");
+        assertThat(intro.strollerRentalNote()).isEqualTo("불가");
+        assertThat(intro.petAllowedNote()).isEqualTo("없음");
+        server.verify();
+    }
+
+    @Test
+    void rejectsUnsupportedIntroContentType() {
+        assertThatThrownBy(() -> client.getIntroDetail("1", "15"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("관광지(12)와 문화시설(14)");
+    }
+
+    @Test
     void returnsAnEmptyListWhenTourApiHasNoImages() {
         server.expect(requestTo(org.hamcrest.Matchers.containsString("/detailImage2")))
                 .andRespond(withSuccess("""

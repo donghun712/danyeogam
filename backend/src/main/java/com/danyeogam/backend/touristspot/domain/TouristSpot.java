@@ -104,6 +104,27 @@ public class TouristSpot {
     @Column(name = "detail_hydrated_at")
     private Instant detailHydratedAt;
 
+    @Column(name = "operating_hours", columnDefinition = "TEXT")
+    private String operatingHours;
+
+    @Column(name = "closed_days", columnDefinition = "TEXT")
+    private String closedDays;
+
+    @Column(name = "parking_note", columnDefinition = "TEXT")
+    private String parkingNote;
+
+    @Column(name = "parking_fee_note", columnDefinition = "TEXT")
+    private String parkingFeeNote;
+
+    @Column(name = "stroller_rental_note", columnDefinition = "TEXT")
+    private String strollerRentalNote;
+
+    @Column(name = "pet_allowed_note", columnDefinition = "TEXT")
+    private String petAllowedNote;
+
+    @Column(name = "intro_hydrated_at")
+    private Instant introHydratedAt;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -266,6 +287,34 @@ public class TouristSpot {
         return detailHydratedAt;
     }
 
+    public String getOperatingHours() {
+        return operatingHours;
+    }
+
+    public String getClosedDays() {
+        return closedDays;
+    }
+
+    public String getParkingNote() {
+        return parkingNote;
+    }
+
+    public String getParkingFeeNote() {
+        return parkingFeeNote;
+    }
+
+    public String getStrollerRentalNote() {
+        return strollerRentalNote;
+    }
+
+    public String getPetAllowedNote() {
+        return petAllowedNote;
+    }
+
+    public Instant getIntroHydratedAt() {
+        return introHydratedAt;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -397,6 +446,24 @@ public class TouristSpot {
             this.originalImageUrl = originalImageUrl;
         }
         this.detailHydratedAt = Objects.requireNonNull(hydratedAt, "hydratedAt");
+    }
+
+    public void hydrateIntro(
+            String operatingHours,
+            String closedDays,
+            String parkingNote,
+            String parkingFeeNote,
+            String strollerRentalNote,
+            String petAllowedNote,
+            Instant hydratedAt
+    ) {
+        this.operatingHours = blankToNull(operatingHours);
+        this.closedDays = blankToNull(closedDays);
+        this.parkingNote = blankToNull(parkingNote);
+        this.parkingFeeNote = blankToNull(parkingFeeNote);
+        this.strollerRentalNote = blankToNull(strollerRentalNote);
+        this.petAllowedNote = blankToNull(petAllowedNote);
+        this.introHydratedAt = Objects.requireNonNull(hydratedAt, "hydratedAt");
     }
 
     public void enableStampTarget(int radiusMeters) {
