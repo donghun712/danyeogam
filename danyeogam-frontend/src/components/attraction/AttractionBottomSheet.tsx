@@ -4,7 +4,7 @@ import { Button } from "@/components/common/Button";
 import { NavigationButton } from "@/components/common/NavigationButton";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
 import { ROUTES } from "@/constants/routes";
-import { AttractionDetailBody } from "./AttractionDetailBody";
+import { AttractionSummaryBody } from "./AttractionSummaryBody";
 import { AttractionDetailStatus } from "./AttractionDetailStatus";
 
 interface AttractionBottomSheetProps {
@@ -14,8 +14,10 @@ interface AttractionBottomSheetProps {
 
 /**
  * 화면시안 "02 관광지 상세(바텀시트)".
- * STEP 4: "03 관광지 상세 페이지"(AttractionDetailPage)와 동일한 상세 데이터를
- * AttractionDetailBody로 공유해서 보여준다 — 두 화면의 정보 차이는 명세서에 정의가 없다.
+ * 시안을 다시 확인해보니 바텀시트(02)와 상세 페이지(03)는 정보량이 다르다 — 바텀시트는
+ * 요약(이미지/뱃지/이름/한 줄 소개/가까운 주차장), 상세 페이지가 전체 정보(운영시간/시설정보
+ * 등)를 담당한다. 그래서 둘이 공유하던 AttractionDetailBody 대신 여기는
+ * AttractionSummaryBody를 쓴다.
  * STEP 8: 이미 보여주고 있던 detail이 있으면(같은 관광지의 백그라운드 재조회/재시도) 그
  * 데이터를 계속 보여주고, detail이 아예 없을 때만 Loading/Error 상태 화면으로 전환한다.
  */
@@ -37,7 +39,7 @@ export function AttractionBottomSheet({
       )}
 
       {detail && (
-        <AttractionDetailBody
+        <AttractionSummaryBody
           detail={detail}
           actions={
             <>

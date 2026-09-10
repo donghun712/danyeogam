@@ -5,15 +5,18 @@ import { AttractionDetailStatus } from "@/components/attraction/AttractionDetail
 import { ErrorState } from "@/components/common/ErrorState";
 import { Button } from "@/components/common/Button";
 import { NavigationButton } from "@/components/common/NavigationButton";
+import { ShareButton } from "@/components/common/ShareButton";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
 import { ROUTES } from "@/constants/routes";
 
 /**
  * 화면시안 "03 관광지 상세 페이지" — Bottom Sheet의 "상세 보기"에서 진입하는 풀페이지.
  *
- * STEP 4 결정: 바텀시트와 완전히 동일한 상세 데이터(AttractionDetailBody 공유)를 보여준다.
+ * 바텀시트(AttractionSummaryBody)와 다르게 여기는 시안 그대로 전체 정보
+ * (AttractionDetailBody: 전체 소개글, 운영시간/휴무일, 시설정보 등)를 보여준다.
  * 액션은 "스탬프 인증하기"(stampEnabled일 때만), "길찾기", "주차장 보기"만 두고
- * ("상세 보기"는 이미 이 화면이라 의미가 없음).
+ * ("상세 보기"는 이미 이 화면이라 의미가 없음). 헤더 우측엔 시안대로 공유 아이콘을 둔다
+ * (즐겨찾기/북마크는 저장 로직이 필요한 새 기능이라 이번에도 보류).
  * STEP 8: 이미 보여주고 있던 detail이 있으면(같은 관광지의 백그라운드 재조회/재시도) 그
  * 데이터를 계속 보여주고, detail이 아예 없을 때만 Loading/Error 상태 화면으로 전환한다.
  */
@@ -36,7 +39,12 @@ export function AttractionDetailPage() {
   }
 
   return (
-    <FullPageLayout title={detail?.name ?? "관광지 상세"}>
+    <FullPageLayout
+      title={detail?.name ?? "관광지 상세"}
+      headerActions={
+        detail && <ShareButton title={detail.name} />
+      }
+    >
       {!detail && (status === "loading" || status === "error") && (
         <AttractionDetailStatus
           status={status}

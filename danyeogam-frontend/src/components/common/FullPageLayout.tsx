@@ -6,13 +6,19 @@ import styles from "./FullPageLayout.module.css";
 interface FullPageLayoutProps {
   title: string;
   children: ReactNode;
+  /** 화면시안 03번 헤더 우측 아이콘(공유 등) 자리. 안 넘기면 기존처럼 뒤로가기+제목만 나온다. */
+  headerActions?: ReactNode;
 }
 
 /**
  * 화면 시안의 "←" 뒤로가기 상단바를 쓰는 풀페이지 화면 공통 레이아웃.
  * 관광지 상세 페이지, 주변 주차장 목록 화면에서 사용한다.
  */
-export function FullPageLayout({ title, children }: FullPageLayoutProps) {
+export function FullPageLayout({
+  title,
+  children,
+  headerActions,
+}: FullPageLayoutProps) {
   const navigate = useNavigate();
 
   return (
@@ -27,6 +33,9 @@ export function FullPageLayout({ title, children }: FullPageLayoutProps) {
           <AppIcon.back size={22} strokeWidth={2} />
         </button>
         <h1 className={`text-h2 ${styles.title}`}>{title}</h1>
+        {headerActions && (
+          <div className={styles.headerActions}>{headerActions}</div>
+        )}
       </header>
       <main className={styles.main}>{children}</main>
     </div>

@@ -15,9 +15,11 @@ interface NearbyParkingState {
  * PARK-01: 관광지 상세와 독립적으로 실패할 수 있는 영역이라 자체 Loading/Empty/Error를 갖는다.
  * temporarilyUnavailable=true는 HTTP 200으로 오는 "공급자 장애" 상태라 error와 구분해서 다룬다
  * (백엔드 문서 8.5절, 10.2절).
+ * limit을 지정하면 바텀시트의 "가까운 주차장" 미리보기처럼 일부만 가져올 수 있다.
  */
 export function useNearbyParking(
   spotId: number | null,
+  limit?: number,
 ): NearbyParkingState & { retry: () => void } {
   const [state, setState] = useState<NearbyParkingState>({
     status: "idle",
@@ -43,7 +45,7 @@ export function useNearbyParking(
     // 요청 시작을 즉시 반영하는 의도적인 로딩 상태 setState (취소 가능한 데이터 페칭 패턴)
     setState((prev) => ({ ...prev, status: "loading", errorCode: null }));
 
-    fetchNearbyParking(spotId, undefined, controller.signal)
+    fetchNearbyParking(spotId, { limit }, controller.signal)
       .then(({ items, temporarilyUnavailable }) => {
         if (controller.signal.aborted) return;
         if (temporarilyUnavailable) {
@@ -71,7 +73,7 @@ export function useNearbyParking(
     return () => {
       controller.abort();
     };
-  }, [spotId, retryToken]);
+  }, [spotId, limit, retryToken]);
 
   return { ...state, retry };
 }

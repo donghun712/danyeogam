@@ -1,0 +1,22 @@
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: var(--space-xs);
+}
+
+.toast {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  right: 0;
+  background: var(--color-ink);
+  color: var(--color-hanji-ivory);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-input);
+  white-space: nowrap;
+}
