@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
+import com.danyeogam.backend.favorite.repository.FavoriteRepository;
 import com.danyeogam.backend.touristspot.application.dto.NavigationDestinationResponse;
 import com.danyeogam.backend.touristspot.application.dto.FacilityInfoResponse;
 import com.danyeogam.backend.touristspot.application.dto.FacilityStatusResponse;
@@ -48,6 +49,7 @@ public class TouristSpotQueryService {
     private final TouristSpotRepository spotRepository;
     private final TouristSpotImageRepository imageRepository;
     private final VisitRepository visitRepository;
+    private final FavoriteRepository favoriteRepository;
     private final MapQueryProperties properties;
 
     public TouristSpotQueryService(
@@ -55,12 +57,14 @@ public class TouristSpotQueryService {
             TouristSpotRepository spotRepository,
             TouristSpotImageRepository imageRepository,
             VisitRepository visitRepository,
+            FavoriteRepository favoriteRepository,
             MapQueryProperties properties
     ) {
         this.regionRepository = regionRepository;
         this.spotRepository = spotRepository;
         this.imageRepository = imageRepository;
         this.visitRepository = visitRepository;
+        this.favoriteRepository = favoriteRepository;
         this.properties = properties;
     }
 
@@ -171,7 +175,9 @@ public class TouristSpotQueryService {
                 spot.getUpdatedAt() != null ? spot.getUpdatedAt() : spot.getSourceModifiedAt(),
                 resolveProvinceRegionCode(spot.getRegion()),
                 operatingInfo(spot),
-                facilityInfo(spot)
+                facilityInfo(spot),
+                actorId != null && favoriteRepository
+                        .existsByActorIdAndTouristSpotId(actorId, spotId)
         );
     }
 

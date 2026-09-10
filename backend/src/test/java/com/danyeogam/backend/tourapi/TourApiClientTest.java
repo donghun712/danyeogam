@@ -7,10 +7,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -431,6 +433,22 @@ class TourApiClientTest {
         assertThatThrownBy(() -> client.getAreaBasedList(1, 10, null))
                 .isInstanceOf(TourApiException.class)
                 .hasMessage("TourAPI 호출에 실패했습니다.")
+                .hasMessageNotContaining("test-service-key")
+                .hasNoCause();
+        server.verify();
+    }
+
+    @Test
+    void identifiesHttpTooManyRequestsWithoutExposingTheKey() {
+        server.expect(requestTo(org.hamcrest.Matchers.containsString("/areaBasedList2")))
+                .andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS));
+
+        assertThatThrownBy(() -> client.getAreaBasedList(1, 10, null))
+                .isInstanceOfSatisfying(TourApiException.class, exception -> {
+                    assertThat(exception.getResultCode()).isEqualTo("HTTP_429");
+                    assertThat(exception.isRateLimited()).isTrue();
+                })
+                .hasMessage("TourAPI 호출 한도를 초과했습니다.")
                 .hasMessageNotContaining("test-service-key")
                 .hasNoCause();
         server.verify();

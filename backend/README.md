@@ -217,7 +217,7 @@ $env:RUN_LIVE_KAKAO_API_TESTS='true'
 - 지역 284건, 활성 스탬프 대상 3,885건, 대표 원본·썸네일 보유 3,629건 확인
 - TourAPI 좌표 3,884건, 카카오 주소 보정 좌표 1건 확인
 - 기존 비선정 11,450건은 삭제하지 않고 비활성화하고, 활성 대상만 담은 독립 복원용 데이터 덤프를 생성
-- `/v3/api-docs`, `/v3/api-docs.yaml`, `/swagger-ui.html` 응답 및 9개 API 경로 검증
+- `/v3/api-docs`, `/v3/api-docs.yaml`, `/swagger-ui.html` 응답 및 11개 API 경로 검증
 - 동시 요청 20개 부하, GPS 멱등 동시성, 전국 16개 광역 도감 합계와 gzip 응답 압축 검증
 
 전국 적재의 제외 사유와 범위는 `docs/tourapi-full-load-report.md`, Swagger 사용법은 `docs/openapi-guide.md`, 프론트 연결 전 최종 검증은 `docs/pre-frontend-validation-report.md`에 정리했다.
@@ -239,7 +239,7 @@ $env:SPRING_PROFILES_ACTIVE='local'
 .\gradlew.bat bootRun
 ```
 
-위 값은 전국 목록만 갱신하는 권장 예다. 빈 `TOUR_SYNC_AREA_CODE`는 전국을 뜻하며, 모든 선정 조건의 마지막 페이지까지 읽었을 때만 기존 비선정 TourAPI 행을 비활성화한다. 특정 지역이나 제한된 페이지로 실행하면 전역 비활성화는 하지 않는다. 장소별 상세 설명, 소개정보와 추가 이미지 전체 수집은 호출량을 확인한 뒤 `TOUR_SYNC_HYDRATE_DETAILS=true`로 증분 실행한다. 목록 원문이 변경되지 않았더라도 소개정보 미수집 장소에는 `detailIntro2`만 호출해 보강한다. 선정 정책은 `docs/tourist-spot-selection-policy.md`, 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
+위 값은 전국 목록만 갱신하는 권장 예다. 빈 `TOUR_SYNC_AREA_CODE`는 전국을 뜻하며, 모든 선정 조건의 마지막 페이지까지 읽었을 때만 기존 비선정 TourAPI 행을 비활성화한다. 특정 지역이나 제한된 페이지로 실행하면 전역 비활성화는 하지 않는다. 장소별 상세 설명, 소개정보와 추가 이미지 전체 수집은 호출량을 확인한 뒤 `TOUR_SYNC_HYDRATE_DETAILS=true`로 증분 실행한다. 목록 원문이 변경되지 않았더라도 공통 상세정보가 미수집된 장소에는 상세·이미지·소개정보를 보강하고, 공통 상세정보는 있지만 소개정보만 미수집된 장소에는 `detailIntro2`만 호출한다. TourAPI가 HTTP 429 또는 제한 초과 코드 22를 반환하면 해당 실행을 즉시 중단하며, 호출 제한 해제 후 재실행하면 미수집 장소부터 증분 보강한다. 선정 정책은 `docs/tourist-spot-selection-policy.md`, 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
 
 ## 다음 단계
 

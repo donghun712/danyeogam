@@ -12,6 +12,7 @@
 - 지역과 관광지 공간 데이터
 - 익명 세션과 향후 회원 연결 구조
 - GPS 인증 시도와 최초 방문 스탬프
+- 익명 Actor별 관광지 즐겨찾기
 - P1 도감 집계 기반과 칭호
 - TourAPI staging, 동기화 실행 이력, 오류 이력
 
@@ -19,7 +20,7 @@
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
-빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2·V3 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
+빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2·V3·V4 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
 
 ```powershell
 mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE C:/관광데이터/db/danyeogam_tour_seed.sql"
@@ -48,7 +49,7 @@ SHOW INDEX FROM tourist_spot;
 
 2026-08-29에 기존 사용자 DB와 분리한 임시 MySQL 8.0.44 인스턴스에서 전체 SQL을 실행해 다음을 확인했다. 스키마의 운영 목표 버전은 MySQL 8.4다.
 
-- 14개 테이블 생성 성공
+- 15개 테이블 생성 성공(즐겨찾기 테이블 포함)
 - `tourist_spot.location`: `POINT`, SRID 4326, `NOT NULL`
 - `sx_tourist_spot_location`: `SPATIAL` 인덱스 생성
 - WGS84 테스트 관광지의 Bounding Box 조회 성공
@@ -68,6 +69,7 @@ SHOW INDEX FROM tourist_spot;
 - 행사·축제 `15`, 여행코스 `25`, 레포츠 `28`, 숙박 `32`, 쇼핑 `38`, 음식점 `39`도 적재하지 않는다.
 - 좌표가 없거나 의심스러운 원본은 `tourist_spot_staging`에서 정제한 뒤 승격한다.
 - `visit(actor_id, tourist_spot_id)` 유니크 제약으로 장소당 최초 스탬프 한 번만 저장한다.
+- `tourist_spot_favorite(actor_id, tourist_spot_id)` 유니크 제약으로 중복 즐겨찾기를 막는다.
 - `verification_attempt(actor_id, idempotency_key)` 유니크 제약으로 재전송을 안전하게 처리한다.
 - 인증 요청의 정확한 GPS 좌표는 테이블에 저장하지 않는다. 계산된 거리, 기기 정확도, 결과, 측정 시각만 기록한다.
 - 이동 경로 테이블은 개인정보 정책이 확정되지 않아 생성하지 않았다.
@@ -84,4 +86,4 @@ SHOW INDEX FROM tourist_spot;
 
 키 원문은 SQL 파일이나 DB 일반 테이블에 저장하지 않고 배포 환경의 Secret으로 주입한다.
 
-백엔드에서는 `V1__init_schema.sql`, `V2__add_tour_classification.sql`, `V3__add_operating_facility_info.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.
+백엔드에서는 `V1__init_schema.sql`, `V2__add_tour_classification.sql`, `V3__add_operating_facility_info.sql`, `V4__add_tourist_spot_favorite.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.

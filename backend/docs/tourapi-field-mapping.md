@@ -88,7 +88,8 @@
 - 각 실행은 `sync_run` 한 건을 생성한다.
 - 목록 원문 JSON은 `tourist_spot_staging.raw_payload`에 저장한다.
 - 선정 분류, 필수값, 좌표가 정상인 건만 `PROMOTED` 상태로 승격한다.
-- 원문 SHA-256 해시와 저장된 분류가 같으면 공통 상세·이미지를 다시 요청하지 않는다.
-- 기존 장소의 `intro_hydrated_at`이 비어 있으면 원문 해시가 같아도 `detailIntro2`만 요청해 운영·시설정보를 보강한다.
+- 원문 SHA-256 해시와 저장된 분류가 같더라도 `detail_hydrated_at`이 비어 있으면 공통 상세·이미지를 요청해 목록만 적재된 기존 장소를 보강한다.
+- 기존 장소에 공통 상세정보는 있고 `intro_hydrated_at`만 비어 있으면 `detailIntro2`만 요청해 운영·시설정보를 보강한다.
+- HTTP 429 또는 TourAPI 제한 초과 코드 `22`가 반환되면 반복 실패를 만들지 않고 동기화를 즉시 중단한다. 제한 해제 후 같은 범위로 재실행하면 `detail_hydrated_at`과 `intro_hydrated_at`이 비어 있는 장소만 다시 보강한다.
 - 해시 또는 분류가 달라지면 동일 관광지를 신규 삽입하지 않고 갱신한다.
 - 검증·외부 API·승격 오류는 `sync_error`에 기록한다.

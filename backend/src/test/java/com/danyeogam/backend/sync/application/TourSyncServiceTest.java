@@ -1,6 +1,7 @@
 package com.danyeogam.backend.sync.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -140,6 +141,112 @@ class TourSyncServiceTest {
         verify(client, never()).getCommonDetail(any());
         verify(client, never()).getImages(any(), anyInt(), anyInt());
         verify(client).getIntroDetail("126508", "12");
+    }
+
+    @Test
+    void backfillsDetailImagesAndIntroWhenUnchangedSpotWasNeverHydrated() {
+        TourApiClient client = mock(TourApiClient.class);
+        TourSyncPersistenceService persistence = mock(TourSyncPersistenceService.class);
+        SyncRunRepository runRepository = mock(SyncRunRepository.class);
+        TouristSummary summary = summary();
+        ValidatedTouristSpot validated = new ValidatedTouristSpot(
+                new java.math.BigDecimal("37.5788000"),
+                new java.math.BigDecimal("126.9769000"),
+                "TOUR:AREA:1:23", CoordinateSource.TOUR_API, "a".repeat(64)
+        );
+        TouristDetail detail = new TouristDetail(
+                "126508", "경복궁", "서울", "", "126.9769", "37.5788",
+                "소개", "https://example.com", "02-0000-0000", "original", "thumb",
+                "20260101000000", "Type1"
+        );
+        TouristImage image = new TouristImage(
+                "126508", "전경", "https://image.test/original.jpg",
+                "https://image.test/thumb.jpg", "1", "Type1"
+        );
+        TouristIntro intro = new TouristIntro(
+                "126508", "12", "09:00~18:00", "매주 화요일",
+                "가능", null, null, null
+        );
+
+        when(runRepository.save(any(SyncRun.class))).thenAnswer(invocation -> {
+            SyncRun run = invocation.getArgument(0);
+            if (run.getId() == null) {
+                ReflectionTestUtils.setField(run, "id", 1L);
+            }
+            return run;
+        });
+        when(client.getLegalDongCodes(isNull(), eq(1), eq(100)))
+                .thenReturn(new TourApiPage<>(1, 1, 100, List.of(new TourRegionCode("1", "서울특별시"))));
+        when(client.getAreaBasedList(
+                anyInt(), anyInt(), eq("1"), any(), any(), any(), nullable(String.class)
+        )).thenReturn(new TourApiPage<>(1, 0, 10, List.of()));
+        when(client.getAreaBasedList(1, 10, "1", "12", "HS", "HS01", null))
+                .thenReturn(new TourApiPage<>(1, 1, 10, List.of(summary)));
+        when(client.getLegalDongCodes("1", 1, 1000))
+                .thenReturn(new TourApiPage<>(1, 1, 1000, List.of(new TourRegionCode("23", "종로구"))));
+        when(persistence.stage(1L, summary)).thenReturn(StagingResult.accepted(11L, validated));
+        when(persistence.isUnchanged(summary, validated.dataHash())).thenReturn(true);
+        when(persistence.needsDetailHydration(summary)).thenReturn(true);
+        when(persistence.needsIntroHydration(summary)).thenReturn(true);
+        when(client.getCommonDetail("126508")).thenReturn(Optional.of(detail));
+        when(client.getImages("126508", 1, 100))
+                .thenReturn(new TourApiPage<>(1, 1, 100, List.of(image)));
+        when(client.getIntroDetail("126508", "12")).thenReturn(Optional.of(intro));
+        when(persistence.promote(11L, summary, validated, detail, intro, List.of(image)))
+                .thenReturn(ImportOutcome.UPDATED);
+
+        TourSyncResult result = new TourSyncService(client, persistence, runRepository)
+                .synchronize(new TourSyncCommand("1", 10, 1, true));
+
+        assertThat(result.updatedCount()).isEqualTo(1);
+        verify(client).getCommonDetail("126508");
+        verify(client).getImages("126508", 1, 100);
+        verify(client).getIntroDetail("126508", "12");
+    }
+
+    @Test
+    void abortsSynchronizationImmediatelyWhenTourApiRateLimitIsReached() {
+        TourApiClient client = mock(TourApiClient.class);
+        TourSyncPersistenceService persistence = mock(TourSyncPersistenceService.class);
+        SyncRunRepository runRepository = mock(SyncRunRepository.class);
+        TouristSummary summary = summary();
+        ValidatedTouristSpot validated = new ValidatedTouristSpot(
+                new java.math.BigDecimal("37.5788000"),
+                new java.math.BigDecimal("126.9769000"),
+                "TOUR:AREA:1:23", CoordinateSource.TOUR_API, "a".repeat(64)
+        );
+        com.danyeogam.backend.tourapi.TourApiException rateLimit =
+                mock(com.danyeogam.backend.tourapi.TourApiException.class);
+
+        when(rateLimit.isRateLimited()).thenReturn(true);
+        when(runRepository.save(any(SyncRun.class))).thenAnswer(invocation -> {
+            SyncRun run = invocation.getArgument(0);
+            if (run.getId() == null) {
+                ReflectionTestUtils.setField(run, "id", 1L);
+            }
+            return run;
+        });
+        when(client.getLegalDongCodes(isNull(), eq(1), eq(100)))
+                .thenReturn(new TourApiPage<>(1, 1, 100, List.of(new TourRegionCode("1", "서울특별시"))));
+        when(client.getAreaBasedList(
+                anyInt(), anyInt(), eq("1"), any(), any(), any(), nullable(String.class)
+        )).thenReturn(new TourApiPage<>(1, 0, 10, List.of()));
+        when(client.getAreaBasedList(1, 10, "1", "12", "HS", "HS01", null))
+                .thenReturn(new TourApiPage<>(1, 1, 10, List.of(summary)));
+        when(client.getLegalDongCodes("1", 1, 1000))
+                .thenReturn(new TourApiPage<>(1, 1, 1000, List.of(new TourRegionCode("23", "종로구"))));
+        when(persistence.stage(1L, summary)).thenReturn(StagingResult.accepted(11L, validated));
+        when(persistence.isUnchanged(summary, validated.dataHash())).thenReturn(true);
+        when(persistence.needsDetailHydration(summary)).thenReturn(true);
+        when(persistence.needsIntroHydration(summary)).thenReturn(true);
+        when(client.getCommonDetail("126508")).thenThrow(rateLimit);
+
+        TourSyncService service = new TourSyncService(client, persistence, runRepository);
+
+        assertThatThrownBy(() -> service.synchronize(new TourSyncCommand("1", 10, 1, true)))
+                .isSameAs(rateLimit);
+        verify(client, never()).getImages(any(), anyInt(), anyInt());
+        verify(client, never()).getIntroDetail(any(), any());
     }
 
     @Test

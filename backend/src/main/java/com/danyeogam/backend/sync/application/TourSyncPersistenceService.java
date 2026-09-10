@@ -178,6 +178,13 @@ class TourSyncPersistenceService {
     }
 
     @Transactional(readOnly = true)
+    boolean needsDetailHydration(TouristSummary summary) {
+        return spotRepository.findBySourceAndSourceContentId("TOUR_API", summary.contentId())
+                .map(spot -> spot.getDetailHydratedAt() == null)
+                .orElse(true);
+    }
+
+    @Transactional(readOnly = true)
     boolean needsIntroHydration(TouristSummary summary) {
         return spotRepository.findBySourceAndSourceContentId("TOUR_API", summary.contentId())
                 .map(spot -> spot.getIntroHydratedAt() == null)

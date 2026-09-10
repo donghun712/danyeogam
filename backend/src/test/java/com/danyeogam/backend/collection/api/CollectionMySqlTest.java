@@ -49,18 +49,22 @@ class CollectionMySqlTest {
     @Autowired private TouristSpotRepository spotRepository;
 
     private Region province;
+    private Region district;
     private TouristSpot visitedSpot;
 
     @BeforeEach
     void setUp() {
         province = regionRepository.save(Region.province("TOUR:AREA:45", "가 지역"));
-        Region district = regionRepository.save(Region.cityCounty(
+        district = regionRepository.save(Region.cityCounty(
                 "TOUR:AREA:45:1", "가 시군구", province
+        ));
+        Region secondDistrict = regionRepository.save(Region.cityCounty(
+                "TOUR:AREA:45:2", "나 시군구", province
         ));
         regionRepository.save(Region.province("TOUR:AREA:46", "나 빈지역"));
         visitedSpot = spotRepository.save(stampSpot("COLL-1", "가 방문", district, 127.0, 37.0));
         spotRepository.save(stampSpot("COLL-2", "나 미방문", district, 127.001, 37.001));
-        spotRepository.save(stampSpot("COLL-3", "다 미방문", district, 127.002, 37.002));
+        spotRepository.save(stampSpot("COLL-3", "다 미방문", secondDistrict, 127.002, 37.002));
         spotRepository.save(TouristSpot.fromTourApi(
                 "COLL-GENERAL", "12", "일반 관광지", district,
                 point(127.003, 37.003), "e".repeat(64)
@@ -109,6 +113,16 @@ class CollectionMySqlTest {
                 .andExpect(jsonPath("$.data.regions[0].progressPercent").value(33))
                 .andExpect(jsonPath("$.data.regions[1].totalCount").value(0))
                 .andExpect(jsonPath("$.data.regions[1].progressPercent").value(0));
+
+        mockMvc.perform(get("/api/v1/me/collection/summary")
+                        .cookie(new Cookie("dg_session", token))
+                        .param("parentRegionCode", province.getCode()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.meta.count").value(2))
+                .andExpect(jsonPath("$.data.regions[0].code").value(district.getCode()))
+                .andExpect(jsonPath("$.data.regions[0].visitedCount").value(1))
+                .andExpect(jsonPath("$.data.regions[0].totalCount").value(2))
+                .andExpect(jsonPath("$.data.regions[1].totalCount").value(1));
 
         mockMvc.perform(get("/api/v1/me/collection/summary"))
                 .andExpect(status().isUnauthorized());

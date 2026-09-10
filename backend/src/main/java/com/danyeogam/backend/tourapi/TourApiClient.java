@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriBuilder;
 
 @Component
@@ -233,6 +234,12 @@ public class TourApiClient {
             return responseBody(root);
         } catch (TourApiException exception) {
             throw exception;
+        } catch (RestClientResponseException exception) {
+            int status = exception.getStatusCode().value();
+            if (status == 429) {
+                throw new TourApiException("HTTP_429", "TourAPI 호출 한도를 초과했습니다.");
+            }
+            throw new TourApiException("TourAPI 호출에 실패했습니다.");
         } catch (RestClientException exception) {
             throw new TourApiException("TourAPI 호출에 실패했습니다.");
         }

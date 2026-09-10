@@ -26,7 +26,8 @@ public record TouristSpotDetailResponse(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String regionCode,
         OperatingInfoResponse operatingInfo,
-        FacilityInfoResponse facilityInfo
+        FacilityInfoResponse facilityInfo,
+        boolean favorited
 ) {
     public TouristSpotDetailResponse {
         images = List.copyOf(images);

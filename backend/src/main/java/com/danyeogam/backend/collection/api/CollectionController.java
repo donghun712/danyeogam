@@ -52,10 +52,11 @@ public class CollectionController {
     @GetMapping("/summary")
     @Operation(summary = "지역별 도감 진행률 조회", security = @SecurityRequirement(name = "anonymousSession"))
     public ResponseEntity<ApiResponse<CollectionSummaryResponse>> getSummary(
+            @RequestParam(required = false) String parentRegionCode,
             HttpServletRequest request
     ) {
         SessionActor actor = requireActor(request);
-        CollectionSummaryResponse data = queryService.getSummary(actor.actorId());
+        CollectionSummaryResponse data = queryService.getSummary(actor.actorId(), parentRegionCode);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore().cachePrivate())
                 .body(ApiResponse.success(data, data.regions().size()));

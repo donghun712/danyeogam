@@ -17,4 +17,8 @@ public class TourApiException extends RuntimeException {
     public String getResultCode() {
         return resultCode;
     }
+
+    public boolean isRateLimited() {
+        return "HTTP_429".equals(resultCode) || "22".equals(resultCode);
+    }
 }

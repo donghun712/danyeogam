@@ -68,6 +68,37 @@ class CollectionQueryServiceTest {
     }
 
     @Test
+    void returnsCityCountySummaryForProvinceWithoutChangingDefaultSummary() {
+        Region province = Region.province("TOUR:AREA:52", "전북특별자치도");
+        ReflectionTestUtils.setField(province, "id", 52L);
+        when(regionRepository.findByCodeAndActiveTrue(province.getCode()))
+                .thenReturn(Optional.of(province));
+        CollectionSummaryProjection districtSummary =
+                summary("TOUR:AREA:52:111", "전주시 완산구", 2L, 5L);
+        when(collectionRepository.findCollectionSummaryByParent(42L, 52L))
+                .thenReturn(List.of(districtSummary));
+
+        var result = service.getSummary(42L, province.getCode());
+
+        assertThat(result.regions()).singleElement().satisfies(item -> {
+            assertThat(item.code()).isEqualTo("TOUR:AREA:52:111");
+            assertThat(item.progressPercent()).isEqualTo(40);
+        });
+    }
+
+    @Test
+    void rejectsCityCountyAsSummaryParent() {
+        Region province = Region.province("TOUR:AREA:52", "전북특별자치도");
+        Region district = Region.cityCounty("TOUR:AREA:52:111", "전주시 완산구", province);
+        when(regionRepository.findByCodeAndActiveTrue(district.getCode()))
+                .thenReturn(Optional.of(district));
+
+        assertThatThrownBy(() -> service.getSummary(42L, district.getCode()))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_REQUEST));
+    }
+
+    @Test
     void rejectsUnknownRegionAndStatusWithStableCodes() {
         when(regionRepository.findByCodeAndActiveTrue("missing")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.getCollection(42L, "missing", "ALL"))

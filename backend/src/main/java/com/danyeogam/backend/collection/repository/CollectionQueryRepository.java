@@ -60,4 +60,39 @@ public interface CollectionQueryRepository extends JpaRepository<TouristSpot, Lo
             ORDER BY province.name, province.id
             """, nativeQuery = true)
     List<CollectionSummaryProjection> findCollectionSummary(@Param("actorId") Long actorId);
+
+    @Query(value = """
+            SELECT scope_region.code AS code,
+                   scope_region.name AS name,
+                   COUNT(DISTINCT v.tourist_spot_id) AS visitedCount,
+                   COUNT(DISTINCT ts.id) AS totalCount
+            FROM region scope_region
+            LEFT JOIN tourist_spot ts
+              ON ts.region_id = scope_region.id
+             AND ts.active = TRUE
+             AND ts.stamp_enabled = TRUE
+             AND ts.spot_type = 'STAMP_TARGET'
+            LEFT JOIN visit v
+              ON v.tourist_spot_id = ts.id
+             AND v.actor_id = :actorId
+            WHERE scope_region.active = TRUE
+              AND (
+                    scope_region.parent_id = :parentRegionId
+                    OR (
+                         scope_region.id = :parentRegionId
+                         AND NOT EXISTS (
+                             SELECT 1
+                             FROM region child
+                             WHERE child.parent_id = :parentRegionId
+                               AND child.active = TRUE
+                         )
+                    )
+                  )
+            GROUP BY scope_region.id, scope_region.code, scope_region.name
+            ORDER BY scope_region.name, scope_region.id
+            """, nativeQuery = true)
+    List<CollectionSummaryProjection> findCollectionSummaryByParent(
+            @Param("actorId") Long actorId,
+            @Param("parentRegionId") Long parentRegionId
+    );
 }

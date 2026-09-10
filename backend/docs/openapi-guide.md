@@ -13,18 +13,19 @@
 - `docs/openapi.json`
 - `docs/openapi.yaml`
 
-문서에는 현재 구현된 9개 API 경로와 34개 스키마가 포함되어 있다. 익명 세션이 필요한 GPS 인증과 도감 API는 `anonymousSession` 쿠키 보안 스키마로 표시했다. 브라우저에서는 먼저 `POST /api/v1/sessions/anonymous`을 호출하고 이후 요청에 credentials를 포함해야 한다.
+문서에는 현재 구현된 11개 API 경로와 42개 스키마가 포함되어 있다. 익명 세션이 필요한 GPS 인증·도감·즐겨찾기 API는 `anonymousSession` 쿠키 보안 스키마로 표시했다. 브라우저에서는 먼저 `POST /api/v1/sessions/anonymous`을 호출하고 이후 요청에 credentials를 포함해야 한다.
 
 프론트가 다른 포트에서 실행되면 운영 환경변수 `CORS_ALLOWED_ORIGINS`에 정확한 Origin을 등록한다. 쿠키 인증 요청에는 프론트의 `fetch` 기준 `credentials: 'include'`가 필요하다.
 
 ## 검증 결과
 
-2026-09-05 분리 MySQL에 연결한 실제 Spring Boot 서버에서 다음을 확인했다.
+2026-09-11 로컬 MySQL에 연결한 실제 Spring Boot 서버에서 다음을 확인했다.
 
 - `/swagger-ui.html`: HTTP 200
 - `/v3/api-docs`: HTTP 200
 - `/v3/api-docs.yaml`: HTTP 200
-- 요구 API 경로 9개와 스키마 34개 노출
+- 요구 API 경로 11개와 스키마 42개 노출
 - 익명 세션 쿠키 보안 스키마 노출
+- 즐겨찾기 경로와 도감 `parentRegionCode` 파라미터 노출
 
 API 구현이 변경되면 서버의 `/v3/api-docs`와 `/v3/api-docs.yaml` 응답으로 두 고정 파일도 다시 생성해야 한다.

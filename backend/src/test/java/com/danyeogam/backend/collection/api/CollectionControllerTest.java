@@ -65,4 +65,18 @@ class CollectionControllerTest {
                 .andExpect(jsonPath("$.meta.count").value(1))
                 .andExpect(jsonPath("$.data.items[0].visitState").value("NOT_VISITED"));
     }
+
+    @Test
+    void forwardsOptionalParentRegionCodeToSummaryService() throws Exception {
+        when(resolver.resolve(any())).thenReturn(Optional.of(new SessionActor(
+                42L, ActorType.ANONYMOUS, Instant.parse("2026-12-01T00:00:00Z")
+        )));
+        when(service.getSummary(42L, "TOUR:AREA:52"))
+                .thenReturn(new CollectionSummaryResponse(List.of()));
+
+        mockMvc.perform(get("/api/v1/me/collection/summary")
+                        .param("parentRegionCode", "TOUR:AREA:52"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.meta.count").value(0));
+    }
 }

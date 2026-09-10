@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
+import com.danyeogam.backend.favorite.repository.FavoriteRepository;
 import com.danyeogam.backend.touristspot.application.dto.TouristSpotDetailResponse;
 import com.danyeogam.backend.touristspot.application.dto.TouristSpotMapData;
 import com.danyeogam.backend.touristspot.config.MapQueryProperties;
@@ -37,6 +38,7 @@ class TouristSpotQueryServiceTest {
     private TouristSpotRepository spotRepository;
     private TouristSpotImageRepository imageRepository;
     private VisitRepository visitRepository;
+    private FavoriteRepository favoriteRepository;
     private MapQueryProperties properties;
     private TouristSpotQueryService service;
 
@@ -46,9 +48,11 @@ class TouristSpotQueryServiceTest {
         spotRepository = mock(TouristSpotRepository.class);
         imageRepository = mock(TouristSpotImageRepository.class);
         visitRepository = mock(VisitRepository.class);
+        favoriteRepository = mock(FavoriteRepository.class);
         properties = new MapQueryProperties();
         service = new TouristSpotQueryService(
-                regionRepository, spotRepository, imageRepository, visitRepository, properties
+                regionRepository, spotRepository, imageRepository, visitRepository,
+                favoriteRepository, properties
         );
     }
 
@@ -175,6 +179,7 @@ class TouristSpotQueryServiceTest {
         assertThat(detail.facilityInfo().strollerRental().note()).isEqualTo("없음");
         assertThat(detail.facilityInfo().petAllowed().status()).isEqualTo("UNKNOWN");
         assertThat(detail.facilityInfo().petAllowed().note()).isNull();
+        assertThat(detail.favorited()).isFalse();
     }
 
     @Test
@@ -196,10 +201,12 @@ class TouristSpotQueryServiceTest {
         when(spotRepository.findByIdAndActiveTrue(7L)).thenReturn(Optional.of(spot));
         when(imageRepository.findAllByTouristSpotIdOrderBySortOrderAscIdAsc(7L)).thenReturn(List.of());
         when(visitRepository.existsByActorIdAndTouristSpotId(42L, 7L)).thenReturn(false);
+        when(favoriteRepository.existsByActorIdAndTouristSpotId(42L, 7L)).thenReturn(true);
 
         TouristSpotDetailResponse detail = service.getDetail(7L, 42L);
 
         assertThat(detail.visitState()).isEqualTo("NOT_VISITED");
+        assertThat(detail.favorited()).isTrue();
     }
 
     @Test

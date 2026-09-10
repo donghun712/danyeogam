@@ -169,10 +169,13 @@ public class TourSyncService {
         }
 
         boolean unchanged = persistence.isUnchanged(summary, staging.validated().dataHash());
+        boolean detailHydrationRequired = command.hydrateDetails()
+                && unchanged
+                && persistence.needsDetailHydration(summary);
         boolean introHydrationRequired = command.hydrateDetails()
                 && unchanged
                 && persistence.needsIntroHydration(summary);
-        if (unchanged && !introHydrationRequired) {
+        if (unchanged && !detailHydrationRequired && !introHydrationRequired) {
             persistence.markPromoted(staging.stagingId());
             run.recordProcessed();
             return;
@@ -182,7 +185,7 @@ public class TourSyncService {
         TouristIntro intro = null;
         List<TouristImage> images = null;
         boolean partialFailure = false;
-        if (command.hydrateDetails() && !unchanged) {
+        if (command.hydrateDetails() && (!unchanged || detailHydrationRequired)) {
             run.recordApiRequest();
             try {
                 Optional<TouristDetail> response = tourApiClient.getCommonDetail(summary.contentId());
@@ -196,6 +199,7 @@ public class TourSyncService {
                     );
                 }
             } catch (TourApiException exception) {
+                abortIfRateLimited(exception);
                 partialFailure = true;
                 recordExternalError(run, staging, summary, "DETAIL_FETCH_FAILED", exception);
             }
@@ -204,6 +208,7 @@ public class TourSyncService {
             try {
                 images = tourApiClient.getImages(summary.contentId(), 1, 100).items();
             } catch (TourApiException exception) {
+                abortIfRateLimited(exception);
                 partialFailure = true;
                 recordExternalError(run, staging, summary, "IMAGE_FETCH_FAILED", exception);
             }
@@ -225,6 +230,7 @@ public class TourSyncService {
                     );
                 }
             } catch (TourApiException exception) {
+                abortIfRateLimited(exception);
                 partialFailure = true;
                 recordExternalError(run, staging, summary, "INTRO_FETCH_FAILED", exception);
             }
@@ -282,6 +288,12 @@ public class TourSyncService {
                 retryable,
                 false
         );
+    }
+
+    private static void abortIfRateLimited(TourApiException exception) {
+        if (exception.isRateLimited()) {
+            throw exception;
+        }
     }
 
     private static TourSyncResult result(SyncRun run) {

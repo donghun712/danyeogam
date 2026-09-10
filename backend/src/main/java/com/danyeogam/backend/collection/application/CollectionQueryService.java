@@ -16,6 +16,7 @@ import com.danyeogam.backend.collection.repository.CollectionSummaryProjection;
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
 import com.danyeogam.backend.touristspot.domain.Region;
+import com.danyeogam.backend.touristspot.domain.RegionLevel;
 import com.danyeogam.backend.touristspot.repository.RegionRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -60,8 +61,26 @@ public class CollectionQueryService {
 
     @Transactional(readOnly = true)
     public CollectionSummaryResponse getSummary(long actorId) {
-        List<CollectionSummaryItemResponse> regions = collectionRepository
-                .findCollectionSummary(actorId)
+        return getSummary(actorId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public CollectionSummaryResponse getSummary(long actorId, String parentRegionCode) {
+        List<CollectionSummaryProjection> summary;
+        if (parentRegionCode == null || parentRegionCode.isBlank()) {
+            summary = collectionRepository.findCollectionSummary(actorId);
+        } else {
+            if (parentRegionCode.length() > 20) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            }
+            Region parent = regionRepository.findByCodeAndActiveTrue(parentRegionCode)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.REGION_NOT_FOUND));
+            if (parent.getLevel() != RegionLevel.PROVINCE) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            }
+            summary = collectionRepository.findCollectionSummaryByParent(actorId, parent.getId());
+        }
+        List<CollectionSummaryItemResponse> regions = summary
                 .stream()
                 .map(this::summaryResponse)
                 .toList();

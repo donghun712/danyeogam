@@ -7,7 +7,7 @@
 ## 지역별 도감
 
 ```http
-GET /api/v1/me/collection?regionCode=TOUR:AREA:45&status=ALL
+GET /api/v1/me/collection?regionCode=TOUR:AREA:52&status=ALL
 ```
 
 `regionCode`는 `GET /api/v1/regions`에서 받은 값을 그대로 전달한다. `status`는 `ALL`, `VISITED`, `NOT_VISITED`이며 생략하면 `ALL`이다.
@@ -16,7 +16,7 @@ GET /api/v1/me/collection?regionCode=TOUR:AREA:45&status=ALL
 {
   "data": {
     "region": {
-      "code": "TOUR:AREA:45",
+      "code": "TOUR:AREA:52",
       "name": "전북특별자치도"
     },
     "items": [
@@ -50,7 +50,7 @@ GET /api/v1/me/collection/summary
   "data": {
     "regions": [
       {
-        "code": "TOUR:AREA:45",
+        "code": "TOUR:AREA:52",
         "name": "전북특별자치도",
         "visitedCount": 1,
         "totalCount": 3,
@@ -70,6 +70,39 @@ GET /api/v1/me/collection/summary
 - 도감 대상이 없는 지역도 `visitedCount=0`, `totalCount=0`, `progressPercent=0`으로 반환한다.
 - 분모는 조회 시점의 활성 스탬프 대상 수이므로 대상 관광지가 바뀌면 과거 진행률도 달라질 수 있다.
 - GPS 인증에서 `collectionChanged=true`이면 도감 목록과 진행률 쿼리를 다시 가져온다.
+
+### 시군구별 진행률
+
+```http
+GET /api/v1/me/collection/summary?parentRegionCode=TOUR:AREA:52
+```
+
+`parentRegionCode`에는 `PROVINCE` 레벨 코드만 전달한다. 응답 모양은 광역 요약과 동일하며 `regions[]`의 코드는 `CITY_COUNTY` 레벨이다.
+
+```json
+{
+  "data": {
+    "regions": [
+      {
+        "code": "TOUR:AREA:52:111",
+        "name": "전주시 완산구",
+        "visitedCount": 1,
+        "totalCount": 18,
+        "progressPercent": 6
+      }
+    ]
+  },
+  "meta": {
+    "count": 1,
+    "requestId": "...",
+    "generatedAt": "2026-09-11T00:00:00Z"
+  }
+}
+```
+
+- 파라미터를 생략한 기존 호출의 응답 구조와 광역 집계는 바뀌지 않는다.
+- 일반 광역 지역에서는 반환된 시군구의 `visitedCount`, `totalCount` 합계가 해당 광역 집계와 같다.
+- 활성 하위 시군구가 없는 광역자치단체는 광역 자체를 단일 항목으로 반환한다.
 
 ## 오류
 
