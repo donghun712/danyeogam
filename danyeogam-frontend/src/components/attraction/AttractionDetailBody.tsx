@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/common/Badge";
+import { FacilityBadge } from "./FacilityBadge";
+import { AppIcon } from "@/constants/icons";
 import type { TouristSpotDetail } from "@/types/api";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import styles from "./AttractionDetailBody.module.css";
@@ -60,8 +62,20 @@ export function AttractionDetailBody({
         <p className={`text-body ${styles.overview}`}>{detail.overview}</p>
       )}
 
-      {(detail.telephone || homepageUrl) && (
+      {(detail.telephone || homepageUrl || detail.operatingInfo?.hours || detail.operatingInfo?.closedDays) && (
         <dl className={styles.metaList}>
+          {detail.operatingInfo?.hours && (
+            <div className={styles.metaRow}>
+              <dt className="text-caption">운영시간</dt>
+              <dd className="text-body">{detail.operatingInfo.hours}</dd>
+            </div>
+          )}
+          {detail.operatingInfo?.closedDays && (
+            <div className={styles.metaRow}>
+              <dt className="text-caption">휴무일</dt>
+              <dd className="text-body">{detail.operatingInfo.closedDays}</dd>
+            </div>
+          )}
           {detail.telephone && (
             <div className={styles.metaRow}>
               <dt className="text-caption">전화</dt>
@@ -84,6 +98,30 @@ export function AttractionDetailBody({
             </div>
           )}
         </dl>
+      )}
+
+      {detail.facilityInfo && (
+        <div className={styles.facilityRow}>
+          <FacilityBadge
+            icon={AppIcon.parking}
+            label="주차"
+            status={detail.facilityInfo.parking}
+          />
+          <FacilityBadge
+            icon={AppIcon.strollerRental}
+            label="유모차"
+            status={detail.facilityInfo.strollerRental}
+          />
+          <FacilityBadge
+            icon={AppIcon.petAllowed}
+            label="반려동물"
+            status={detail.facilityInfo.petAllowed}
+          />
+          {/* 휠체어(무장애) 정보는 백엔드 응답에 없어 표시하지 않는다 — 임의로 만들지 않는다. */}
+        </div>
+      )}
+      {detail.facilityInfo?.parkingFeeNote && (
+        <p className="text-caption">주차 요금: {detail.facilityInfo.parkingFeeNote}</p>
       )}
 
       {actions && <div className={styles.actions}>{actions}</div>}

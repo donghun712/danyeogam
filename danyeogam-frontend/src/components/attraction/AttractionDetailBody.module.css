@@ -61,6 +61,12 @@
   color: var(--color-info);
 }
 
+.facilityRow {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap; /* STEP 9 실제 확인: 좁은 화면에서 4개 버튼이 한 줄에 눌려 글자가 끊기던 문제 수정 */

@@ -92,6 +92,31 @@ export interface NavigationTarget {
   coordinateType: "wgs84";
 }
 
+/** TourAPI detailIntro2 원문 그대로 — 파싱하지 않고 그대로 표시한다("상시 개방" 같은 값도 있음). */
+export interface OperatingInfo {
+  hours: string | null;
+  closedDays: string | null;
+}
+
+export type FacilityStatusValue = "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN";
+
+/**
+ * status만으로 판단하지 않는다 — UNKNOWN이어도 note(원문)가 있으면 그 텍스트를 보여줘야 한다.
+ * note가 null인 UNKNOWN만 "정보 없음"에 해당한다.
+ */
+export interface FacilityStatus {
+  status: FacilityStatusValue;
+  note: string | null;
+}
+
+export interface FacilityInfo {
+  parking: FacilityStatus;
+  parkingFeeNote: string | null;
+  strollerRental: FacilityStatus;
+  petAllowed: FacilityStatus;
+  // 휠체어(무장애) 정보는 TourAPI detailIntro2에 없어 백엔드 응답에도 없다 — 항목 자체를 만들지 않는다.
+}
+
 export interface TouristSpotDetail {
   id: number;
   name: string;
@@ -113,6 +138,9 @@ export interface TouristSpotDetail {
    * 정확히 매칭된다 — 시/군/구 소속 관광지도 백엔드가 상위 광역 코드로 정규화해서 내려준다.
    */
   regionCode: string;
+  /** detailIntro2로 보강되지 않은 관광지는 null — 아직 전체 3,885건 중 일부만 보강된 상태다. */
+  operatingInfo: OperatingInfo | null;
+  facilityInfo: FacilityInfo | null;
 }
 
 // ── 현재 좌표 주소 (POST /api/v1/geo/reverse) ────────────
