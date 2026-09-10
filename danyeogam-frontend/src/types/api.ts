@@ -141,6 +141,20 @@ export interface TouristSpotDetail {
   /** detailIntro2로 보강되지 않은 관광지는 null — 아직 전체 3,885건 중 일부만 보강된 상태다. */
   operatingInfo: OperatingInfo | null;
   facilityInfo: FacilityInfo | null;
+  /** 세션이 없으면 항상 false — 상세 조회 자체는 세션 없이도 가능하다. */
+  favorited: boolean;
+}
+
+export interface FavoriteState {
+  touristSpotId: number;
+  favorited: boolean;
+}
+
+export interface FavoriteItem {
+  touristSpotId: number;
+  name: string;
+  thumbnailUrl: string | null;
+  visitState: VisitState;
 }
 
 // ── 현재 좌표 주소 (POST /api/v1/geo/reverse) ────────────

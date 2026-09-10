@@ -1,0 +1,34 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-secondary-bg);
+  border: none;
+  border-radius: var(--radius-badge);
+  padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-heritage-brown);
+  outline-offset: 2px;
+}
+
+.chevron {
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-secondary-text);
+  pointer-events: none;
+}

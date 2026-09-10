@@ -1,0 +1,25 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: var(--space-xs);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.withLabel {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-badge);
+  background: var(--color-sand);
+}
+
+.active {
+  color: var(--color-heritage-brown);
+}

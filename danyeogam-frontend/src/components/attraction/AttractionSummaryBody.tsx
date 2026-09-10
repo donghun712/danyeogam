@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/common/Badge";
+import { FavoriteButton } from "@/components/common/FavoriteButton";
 import { useNearbyParking } from "@/hooks/useNearbyParking";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import type { TouristSpotDetail } from "@/types/api";
@@ -45,6 +46,7 @@ export function AttractionSummaryBody({
         {detail.visitState === "VISITED" && (
           <Badge tone="success">✓ 방문 완료</Badge>
         )}
+        <FavoriteButton spotId={detail.id} favorited={detail.favorited} showLabel />
       </div>
 
       <h2 className="text-h2">{detail.name}</h2>

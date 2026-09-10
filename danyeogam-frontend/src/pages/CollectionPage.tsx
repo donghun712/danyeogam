@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CollectionRegionSelector } from "@/components/collection/CollectionRegionSelector";
+import { CollectionSubRegionSelector } from "@/components/collection/CollectionSubRegionSelector";
 import { CollectionProgress } from "@/components/collection/CollectionProgress";
 import { CollectionCard } from "@/components/collection/CollectionCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -16,6 +17,10 @@ import styles from "./CollectionPage.module.css";
  * GET /me/collection/summary로 지역 목록 + 진행률을 한 번에 받고, 사용자가 지역을 고르면
  * GET /me/collection?regionCode=...로 해당 지역의 방문/미방문 목록을 가져온다.
  * regionCode는 백엔드가 내려준 값("TOUR:AREA:45" 형태)을 그대로 사용하고 가공하지 않는다.
+ *
+ * 광역(도/특별시·광역시)을 고른 뒤, 그 안에 시군구 단위 진행률이 있으면(대부분의 광역이
+ * 그렇다 — 세종특별자치시처럼 하위 지역이 없는 경우는 자동으로 숨김) 2단계로 더 좁혀볼 수
+ * 있다. `GET /me/collection/summary?parentRegionCode=...`를 재사용한다(백엔드 문서 참고).
  *
  * 칭호(Title)는 백엔드 API가 아직 없어 이 화면에서 다루지 않는다.
  * TODO: GET /me/titles가 추가되면 이 페이지의 CollectionProgress 아래에
@@ -35,10 +40,32 @@ export function CollectionPage() {
     ? preferredRegionCode
     : (summary.regions[0]?.code ?? null);
 
-  const list = useCollectionList(selectedRegionCode);
-  const selectedSummary = summary.regions.find(
-    (region) => region.code === selectedRegionCode,
-  );
+  // 시군구 하위 진행률 — 광역이 바뀌면 하위 선택도 같이 초기화한다(effect 없이 렌더링 중 보정).
+  const [syncedProvinceCode, setSyncedProvinceCode] = useState(selectedRegionCode);
+  const [preferredSubRegionCode, setPreferredSubRegionCode] = useState<
+    string | null
+  >(null);
+  if (selectedRegionCode !== syncedProvinceCode) {
+    setSyncedProvinceCode(selectedRegionCode);
+    setPreferredSubRegionCode(null);
+  }
+
+  const subSummary = useCollectionSummary(selectedRegionCode);
+  // 백엔드 문서: "활성 하위 시군구가 없는 광역자치단체는 광역 자체를 단일 항목으로 반환" —
+  // 그런 경우 굳이 2단계 선택기를 보여줄 필요가 없어서 항목이 2개 이상일 때만 노출한다.
+  const hasSubRegions =
+    subSummary.status === "success" && subSummary.regions.length > 1;
+  const selectedSubRegionCode =
+    hasSubRegions &&
+    subSummary.regions.some((region) => region.code === preferredSubRegionCode)
+      ? preferredSubRegionCode
+      : null;
+
+  const effectiveRegionCode = selectedSubRegionCode ?? selectedRegionCode;
+  const list = useCollectionList(effectiveRegionCode);
+  const effectiveSummary = selectedSubRegionCode
+    ? subSummary.regions.find((region) => region.code === selectedSubRegionCode)
+    : summary.regions.find((region) => region.code === selectedRegionCode);
 
   return (
     <div className={styles.container}>
@@ -67,13 +94,22 @@ export function CollectionPage() {
 
       {summary.regions.length > 0 && selectedRegionCode && (
         <>
-          <CollectionRegionSelector
-            regions={summary.regions}
-            selectedCode={selectedRegionCode}
-            onChange={setPreferredRegionCode}
-          />
+          <div className={styles.selectorRow}>
+            <CollectionRegionSelector
+              regions={summary.regions}
+              selectedCode={selectedRegionCode}
+              onChange={setPreferredRegionCode}
+            />
+            {hasSubRegions && (
+              <CollectionSubRegionSelector
+                regions={subSummary.regions}
+                selectedCode={selectedSubRegionCode}
+                onChange={setPreferredSubRegionCode}
+              />
+            )}
+          </div>
 
-          {selectedSummary && <CollectionProgress summary={selectedSummary} />}
+          {effectiveSummary && <CollectionProgress summary={effectiveSummary} />}
 
           {list.status === "loading" && list.items.length === 0 && (
             <div className={styles.grid}>

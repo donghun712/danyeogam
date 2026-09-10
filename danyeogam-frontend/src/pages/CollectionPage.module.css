@@ -9,6 +9,13 @@
   margin: 0;
 }
 
+.selectorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .loading {
   display: flex;
   flex-direction: column;
