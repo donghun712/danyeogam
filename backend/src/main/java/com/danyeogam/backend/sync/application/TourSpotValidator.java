@@ -32,6 +32,12 @@ class TourSpotValidator {
         requireText(summary.contentId(), "CONTENT_ID_MISSING", "관광지 contentId가 없습니다.");
         requireText(summary.title(), "TITLE_MISSING", "관광지명이 없습니다.");
         requireText(summary.areaCode(), "AREA_CODE_MISSING", "지역 코드가 없습니다.");
+        if (!TouristSpotSelectionPolicy.includes(summary)) {
+            throw new TourSpotValidationException(
+                    "CATEGORY_NOT_SELECTED",
+                    "다녀감 관광지 선정 분류에 포함되지 않습니다."
+            );
+        }
 
         ResolvedCoordinate coordinate = resolveCoordinate(summary);
 

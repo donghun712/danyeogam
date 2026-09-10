@@ -61,6 +61,22 @@ class TouristSpotDomainTest {
     }
 
     @Test
+    void refreshesTourApiClassificationWithoutChangingExistingCoordinate() {
+        TouristSpot spot = TouristSpot.fromTourApi(
+                "126508", "12", "경복궁", Region.province("1", "서울특별시"),
+                point(126.9769, 37.5788, 4326), HASH
+        );
+
+        spot.refreshClassification("12", "HS", "HS01", "HS010100");
+
+        assertThat(spot.getClassificationLevel1()).isEqualTo("HS");
+        assertThat(spot.getClassificationLevel2()).isEqualTo("HS01");
+        assertThat(spot.getClassificationLevel3()).isEqualTo("HS010100");
+        assertThat(spot.getLocation().getX()).isEqualTo(126.9769);
+        assertThat(spot.getLocation().getY()).isEqualTo(37.5788);
+    }
+
+    @Test
     void enforcesRegionHierarchy() {
         Region province = Region.province("1", "서울특별시");
         Region district = Region.cityCounty("1-23", "종로구", province);

@@ -15,8 +15,13 @@ export class ApiError extends Error {
   readonly fieldErrors: ApiErrorBody["fieldErrors"];
   readonly status: number;
   readonly requestId?: string;
+  readonly retryAfterSeconds: number | null;
 
-  constructor(status: number, body: ApiErrorResponse) {
+  constructor(
+    status: number,
+    body: ApiErrorResponse,
+    retryAfterSeconds: number | null = null,
+  ) {
     super(body.error.message);
     this.name = "ApiError";
     this.code = body.error.code;
@@ -24,7 +29,21 @@ export class ApiError extends Error {
     this.fieldErrors = body.error.fieldErrors;
     this.status = status;
     this.requestId = body.meta?.requestId;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
+}
+
+function parseRetryAfterSeconds(value: string | null): number | null {
+  if (!value) return null;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.ceil(seconds);
+  }
+
+  const retryAt = Date.parse(value);
+  if (Number.isNaN(retryAt)) return null;
+  return Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
 }
 
 /** 네트워크 자체가 끊긴 경우(요청이 서버까지 도달하지 못한 경우)를 구분하기 위한 예외. */
@@ -96,8 +115,15 @@ export async function apiRequest<T>(
   const json = await response.json().catch(() => null);
 
   if (!response.ok) {
+    const retryAfterSeconds = parseRetryAfterSeconds(
+      response.headers.get("Retry-After"),
+    );
     if (json && typeof json === "object" && "error" in json) {
-      throw new ApiError(response.status, json as ApiErrorResponse);
+      throw new ApiError(
+        response.status,
+        json as ApiErrorResponse,
+        retryAfterSeconds,
+      );
     }
     throw new ApiError(response.status, {
       error: {
@@ -107,7 +133,7 @@ export async function apiRequest<T>(
         fieldErrors: [],
       },
       meta: { requestId: "unknown", generatedAt: new Date().toISOString() },
-    });
+    }, retryAfterSeconds);
   }
 
   return (json as ApiSuccess<T>).data;

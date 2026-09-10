@@ -53,7 +53,7 @@ private static String resolveProvinceRegionCode(Region region) {
 - `gradlew.bat test bootJar`: 성공. 총 97건 중 89건 통과, 실패 0, 오류 0, 조건부 8건 제외.
   제외된 항목은 환경변수로 활성화하는 MySQL 및 외부 TourAPI/Kakao 테스트다.
 - 추가 단위 검증: 광역 직속, 시군구 상위 코드, 로그인 여부와 무관한 동일 코드, 부모 누락·순환 거부.
-- 기존 MySQL 카탈로그에서 활성 관광지 15,335건 확인: 시군구 15,263건, 광역 직속 72건.
+- 세부 분류 정책 반영 후 MySQL 카탈로그에서 활성 관광지 3,885건 확인: 시군구 3,872건, 광역 직속 13건.
   상위 지역 레벨·활성 상태·코드 형식 이상 0건.
 - 실제 서버에서 익명 세션을 발급하고 `/api/v1/me/collection/summary`의 16개 코드를 조회했다.
   16개 광역 지역별 관광지 상세를 하나씩 호출하여 DB 상위 코드와 일치하고,
@@ -64,18 +64,20 @@ private static String resolveProvinceRegionCode(Region region) {
 
 ## 실제 응답 예시
 
-전북 지역 관광지 대장도, `GET /api/v1/tourist-spots/48` 응답 일부:
+경북 지역 관광지 관호산성, `GET /api/v1/tourist-spots/14` 응답 일부:
 
 ```json
 {
-  "id": 48,
-  "name": "대장도",
+  "id": 14,
+  "name": "관호산성",
   "type": "STAMP_TARGET",
-  "regionCode": "TOUR:AREA:52"
+  "regionCode": "TOUR:AREA:47"
 }
 ```
 
 `regionCode`는 실제 도감 요약 목록에 포함된다. 관광지의 면적·규모 필드는 현재 API에 없다.
+
+이 보고서 뒤에 적용한 관광지 세부 분류 정책으로 현재 활성 대상은 3,885건이다. `regionCode` 조회 로직과 응답 계약에는 영향이 없다.
 
 ## Swagger 및 전달 문서
 

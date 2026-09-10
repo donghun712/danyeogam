@@ -167,6 +167,9 @@ CREATE TABLE IF NOT EXISTS tourist_spot (
     source              VARCHAR(30)     NOT NULL,
     source_content_id   VARCHAR(40)     NOT NULL,
     source_content_type_id VARCHAR(20)  NULL,
+    classification_level1 VARCHAR(20)  NULL,
+    classification_level2 VARCHAR(20)  NULL,
+    classification_level3 VARCHAR(20)  NULL,
     name                VARCHAR(200)    NOT NULL,
     spot_type           VARCHAR(30)     NOT NULL DEFAULT 'GENERAL',
     stamp_enabled       BOOLEAN         NOT NULL DEFAULT FALSE,
@@ -206,6 +209,10 @@ CREATE TABLE IF NOT EXISTS tourist_spot (
     SPATIAL INDEX sx_tourist_spot_location (location),
     INDEX ix_tourist_spot_region_active (region_id, active),
     INDEX ix_tourist_spot_stamp_active (stamp_enabled, active),
+    INDEX ix_tourist_spot_classification (
+        source, active, source_content_type_id,
+        classification_level1, classification_level2, classification_level3
+    ),
     INDEX ix_tourist_spot_region_stamp_active (region_id, stamp_enabled, active),
     INDEX ix_tourist_spot_modified (source_modified_at)
 ) ENGINE = InnoDB;
@@ -359,12 +366,11 @@ CREATE TABLE IF NOT EXISTS sync_error (
 ) ENGINE = InnoDB;
 
 INSERT INTO schema_metadata (version, description)
-VALUES ('1.0.0', 'Initial danyeogam schema')
+VALUES ('2.0.0', 'Danyeogam schema with TourAPI classification fields')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
 -- 의도적으로 생성하지 않은 데이터/테이블
 -- 1. region 및 tourist_spot 데이터: TourAPI 연동 후 적재
--- 2. 스탬프 대상 목록: 기획 승인 후 tourist_spot의 spot_type/stamp_enabled 갱신
+-- 2. 스탬프 대상 목록: HS01, HS02, VE070100, VE070200, VE070600 선정 정책으로 적재
 -- 3. GPS 이동 경로: P2이며 명시적 동의·보관정책 확정 전에는 저장 금지
 -- 4. GPS 기본 반경/정확도/유효시간: DB 상수가 아니라 운영 환경변수로 주입
-

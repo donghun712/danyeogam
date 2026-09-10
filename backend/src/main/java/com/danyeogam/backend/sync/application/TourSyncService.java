@@ -25,8 +25,6 @@ import org.springframework.context.annotation.Profile;
 public class TourSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(TourSyncService.class);
-    private static final List<String> INCLUDED_CONTENT_TYPE_IDS = List.of("12", "14");
-
     private final TourApiClient tourApiClient;
     private final TourSyncPersistenceService persistence;
     private final SyncRunRepository syncRunRepository;
@@ -51,19 +49,25 @@ public class TourSyncService {
         try {
             Set<String> preparedDistrictAreas = new HashSet<>();
             prepareProvinces(run);
+            boolean completeNationalCatalog = command.areaCode() == null;
 
-            for (String contentTypeId : INCLUDED_CONTENT_TYPE_IDS) {
+            for (TourCategorySelection selection : TouristSpotSelectionPolicy.selections()) {
                 int pageNo = 1;
+                boolean selectionComplete = false;
                 while (pageNo <= command.maxPages()) {
                     run.recordApiRequest();
                     TourApiPage<TouristSummary> page = tourApiClient.getAreaBasedList(
                             pageNo,
                             command.pageSize(),
                             command.areaCode(),
-                            contentTypeId
+                            selection.contentTypeId(),
+                            selection.classificationLevel1(),
+                            selection.classificationLevel2(),
+                            selection.classificationLevel3()
                     );
                     List<TouristSummary> items = page.items();
                     if (items.isEmpty()) {
+                        selectionComplete = true;
                         break;
                     }
 
@@ -74,18 +78,27 @@ public class TourSyncService {
                     }
 
                     if ((long) pageNo * command.pageSize() >= page.totalCount()) {
+                        selectionComplete = true;
                         break;
                     }
                     pageNo++;
                 }
+                if (!selectionComplete) {
+                    completeNationalCatalog = false;
+                }
             }
 
-            run.finish("TourAPI 관광지·문화시설 요약·상세·이미지 동기화 완료");
+            if (completeNationalCatalog) {
+                run.recordDeactivated(persistence.deactivateOutsideSelectionPolicy());
+            }
+
+            run.finish("TourAPI 역사유적·역사유물·박물관·기념관·미술관 동기화 완료");
             syncRunRepository.save(run);
             log.info(
-                    "TourAPI sync completed: syncRunId={}, status={}, requested={}, processed={}, inserted={}, updated={}, failed={}, apiRequests={}",
+                    "TourAPI sync completed: syncRunId={}, status={}, requested={}, processed={}, inserted={}, updated={}, deactivated={}, failed={}, apiRequests={}",
                     run.getId(), run.getStatus(), run.getRequestedCount(), run.getProcessedCount(),
-                    run.getInsertedCount(), run.getUpdatedCount(), run.getFailedCount(), run.getRequestQuotaCount()
+                    run.getInsertedCount(), run.getUpdatedCount(), run.getDeactivatedCount(),
+                    run.getFailedCount(), run.getRequestQuotaCount()
             );
             return result(run);
         } catch (RuntimeException exception) {
@@ -129,6 +142,10 @@ public class TourSyncService {
     }
 
     private void importOne(SyncRun run, TourSyncCommand command, TouristSummary summary) {
+        // 기존 관광지는 좌표나 상세 검증이 실패하더라도 선정 분류를 먼저 기록한다.
+        // 그러면 완전한 전국 동기화 뒤 제외 대상을 정리할 때 선정 장소의 기존 좌표를 보존할 수 있다.
+        persistence.updateClassificationIfPresent(summary);
+
         StagingResult staging;
         try {
             staging = persistence.stage(run.getId(), summary);
@@ -150,7 +167,7 @@ public class TourSyncService {
             return;
         }
 
-        if (persistence.isUnchanged(summary.contentId(), staging.validated().dataHash())) {
+        if (persistence.isUnchanged(summary, staging.validated().dataHash())) {
             persistence.markPromoted(staging.stagingId());
             run.recordProcessed();
             return;
@@ -247,6 +264,7 @@ public class TourSyncService {
                 run.getProcessedCount(),
                 run.getInsertedCount(),
                 run.getUpdatedCount(),
+                run.getDeactivatedCount(),
                 run.getFailedCount(),
                 run.getRequestQuotaCount()
         );

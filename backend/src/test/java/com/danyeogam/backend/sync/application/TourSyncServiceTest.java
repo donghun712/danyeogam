@@ -2,9 +2,12 @@ package com.danyeogam.backend.sync.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,14 +61,15 @@ class TourSyncServiceTest {
         });
         when(client.getLegalDongCodes(isNull(), eq(1), eq(100)))
                 .thenReturn(new TourApiPage<>(1, 1, 100, List.of(new TourRegionCode("1", "서울특별시"))));
-        when(client.getAreaBasedList(1, 10, "1", "12"))
+        when(client.getAreaBasedList(
+                anyInt(), anyInt(), eq("1"), any(), any(), any(), nullable(String.class)
+        )).thenReturn(new TourApiPage<>(1, 0, 10, List.of()));
+        when(client.getAreaBasedList(1, 10, "1", "12", "HS", "HS01", null))
                 .thenReturn(new TourApiPage<>(1, 1, 10, List.of(summary)));
-        when(client.getAreaBasedList(1, 10, "1", "14"))
-                .thenReturn(new TourApiPage<>(1, 0, 10, List.of()));
         when(client.getLegalDongCodes("1", 1, 1000))
                 .thenReturn(new TourApiPage<>(1, 1, 1000, List.of(new TourRegionCode("23", "종로구"))));
         when(persistence.stage(1L, summary)).thenReturn(StagingResult.accepted(11L, validated));
-        when(persistence.isUnchanged("126508", validated.dataHash())).thenReturn(false);
+        when(persistence.isUnchanged(summary, validated.dataHash())).thenReturn(false);
         when(client.getCommonDetail("126508")).thenReturn(Optional.of(detail));
         when(client.getImages("126508", 1, 100))
                 .thenReturn(new TourApiPage<>(1, 1, 100, List.of(image)));
@@ -79,9 +83,38 @@ class TourSyncServiceTest {
         assertThat(result.processedCount()).isEqualTo(1);
         assertThat(result.insertedCount()).isEqualTo(1);
         assertThat(result.failedCount()).isZero();
-        assertThat(result.apiRequestCount()).isEqualTo(6);
+        assertThat(result.apiRequestCount()).isEqualTo(12);
         verify(persistence).upsertProvinces(List.of(new TourRegionCode("1", "서울특별시")));
         verify(persistence).upsertDistricts("1", List.of(new TourRegionCode("23", "종로구")));
+        verify(persistence).updateClassificationIfPresent(summary);
+        verify(persistence, never()).deactivateOutsideSelectionPolicy();
+    }
+
+    @Test
+    void deactivatesExcludedSpotsOnlyAfterCompleteNationalSync() {
+        TourApiClient client = mock(TourApiClient.class);
+        TourSyncPersistenceService persistence = mock(TourSyncPersistenceService.class);
+        SyncRunRepository runRepository = mock(SyncRunRepository.class);
+        when(runRepository.save(any(SyncRun.class))).thenAnswer(invocation -> {
+            SyncRun run = invocation.getArgument(0);
+            if (run.getId() == null) {
+                ReflectionTestUtils.setField(run, "id", 1L);
+            }
+            return run;
+        });
+        when(client.getLegalDongCodes(isNull(), eq(1), eq(100)))
+                .thenReturn(new TourApiPage<>(1, 1, 100, List.of(new TourRegionCode("11", "서울특별시"))));
+        when(client.getAreaBasedList(
+                anyInt(), anyInt(), isNull(), any(), any(), any(), nullable(String.class)
+        )).thenReturn(new TourApiPage<>(1, 0, 1000, List.of()));
+        when(persistence.deactivateOutsideSelectionPolicy()).thenReturn(11_448);
+
+        TourSyncResult result = new TourSyncService(client, persistence, runRepository)
+                .synchronize(new TourSyncCommand(null, 1000, 3, false));
+
+        assertThat(result.deactivatedCount()).isEqualTo(11_448);
+        assertThat(result.apiRequestCount()).isEqualTo(9);
+        verify(persistence).deactivateOutsideSelectionPolicy();
     }
 
     private static TouristSummary summary() {
@@ -89,6 +122,7 @@ class TourSyncServiceTest {
                 "126508", "12", "경복궁", "서울", "", "1", "23",
                 "126.9769", "37.5788", "original", "thumb", "20260101000000",
                 "02-0000-0000", "Type1",
+                "HS", "HS01", "HS010100",
                 new ObjectMapper().createObjectNode().put("contentid", "126508")
         );
     }

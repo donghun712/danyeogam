@@ -14,6 +14,7 @@ import com.danyeogam.backend.common.api.RequestIdFilter;
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
 import com.danyeogam.backend.common.error.GlobalExceptionHandler;
+import com.danyeogam.backend.common.error.RateLimitException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,6 +103,15 @@ class CommonApiWebTest {
                 .andExpect(jsonPath("$.error.retryable").value(false));
     }
 
+    @Test
+    void rateLimitResponseIncludesRetryAfterHeader() throws Exception {
+        mockMvc.perform(get("/test/rate-limit"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Retry-After", "37"))
+                .andExpect(jsonPath("$.error.code").value("TOO_MANY_REQUESTS"))
+                .andExpect(jsonPath("$.error.retryable").value(true));
+    }
+
     @RestController
     public static class TestController {
 
@@ -118,6 +128,11 @@ class CommonApiWebTest {
         @GetMapping("/test/not-found")
         ApiResponse<Void> notFound() {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
+
+        @GetMapping("/test/rate-limit")
+        ApiResponse<Void> rateLimit() {
+            throw new RateLimitException(37);
         }
     }
 

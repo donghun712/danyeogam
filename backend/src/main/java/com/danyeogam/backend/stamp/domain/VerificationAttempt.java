@@ -43,7 +43,7 @@ public class VerificationAttempt {
     @Column(name = "measured_at", nullable = false)
     private Instant measuredAt;
 
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     protected VerificationAttempt() {
@@ -56,7 +56,8 @@ public class VerificationAttempt {
             VerificationResult result,
             BigDecimal distanceMeters,
             BigDecimal accuracyMeters,
-            Instant measuredAt
+            Instant measuredAt,
+            Instant createdAt
     ) {
         this.actorId = actorId;
         this.touristSpotId = touristSpotId;
@@ -65,6 +66,7 @@ public class VerificationAttempt {
         this.distanceMeters = distanceMeters;
         this.accuracyMeters = Objects.requireNonNull(accuracyMeters, "accuracyMeters");
         this.measuredAt = Objects.requireNonNull(measuredAt, "measuredAt");
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
     }
 
     public Long getId() { return id; }
@@ -72,4 +74,5 @@ public class VerificationAttempt {
     public Long getTouristSpotId() { return touristSpotId; }
     public VerificationResult getResult() { return result; }
     public BigDecimal getDistanceMeters() { return distanceMeters; }
+    public Instant getCreatedAt() { return createdAt; }
 }

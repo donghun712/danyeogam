@@ -71,7 +71,10 @@ Cookie: dg_session=<HttpOnly 쿠키>
 | 404 | `TOURIST_SPOT_NOT_FOUND` | 존재하지 않는 관광지 |
 | 409 | `IDEMPOTENCY_KEY_CONFLICT` | 같은 키를 다른 관광지 요청에 사용 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | 요청 `Content-Type`이 `application/json`이 아님 |
-| 429 | `TOO_MANY_REQUESTS` | Actor 기준 1분 요청 한도 초과 |
+| 429 | `TOO_MANY_REQUESTS` | Actor 기준 최근 1분의 새 인증 요청 5회 초과 |
+
+429 응답에는 다시 요청할 수 있을 때까지 남은 초가 `Retry-After` 헤더로 제공된다.
+프론트는 이 시간 동안 재시도 버튼을 비활성화하고 남은 시간을 안내한다.
 
 ## 현재 판정 기준
 

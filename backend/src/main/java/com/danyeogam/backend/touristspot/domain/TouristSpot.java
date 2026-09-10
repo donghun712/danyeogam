@@ -39,6 +39,15 @@ public class TouristSpot {
     @Column(name = "source_content_type_id", length = 20)
     private String sourceContentTypeId;
 
+    @Column(name = "classification_level1", length = 20)
+    private String classificationLevel1;
+
+    @Column(name = "classification_level2", length = 20)
+    private String classificationLevel2;
+
+    @Column(name = "classification_level3", length = 20)
+    private String classificationLevel3;
+
     @Column(nullable = false, length = 200)
     private String name;
 
@@ -177,6 +186,18 @@ public class TouristSpot {
         return sourceContentTypeId;
     }
 
+    public String getClassificationLevel1() {
+        return classificationLevel1;
+    }
+
+    public String getClassificationLevel2() {
+        return classificationLevel2;
+    }
+
+    public String getClassificationLevel3() {
+        return classificationLevel3;
+    }
+
     public String getName() {
         return name;
     }
@@ -265,6 +286,18 @@ public class TouristSpot {
         return Collections.unmodifiableList(images);
     }
 
+    public void refreshClassification(
+            String sourceContentTypeId,
+            String classificationLevel1,
+            String classificationLevel2,
+            String classificationLevel3
+    ) {
+        this.sourceContentTypeId = blankToNull(sourceContentTypeId);
+        this.classificationLevel1 = blankToNull(classificationLevel1);
+        this.classificationLevel2 = blankToNull(classificationLevel2);
+        this.classificationLevel3 = blankToNull(classificationLevel3);
+    }
+
     public void refreshSummary(
             String sourceContentTypeId,
             String name,
@@ -299,7 +332,36 @@ public class TouristSpot {
             Instant sourceModifiedAt,
             String dataHash
     ) {
-        this.sourceContentTypeId = blankToNull(sourceContentTypeId);
+        refreshSummary(
+                sourceContentTypeId, null, null, null, name, region, roadAddress, lotAddress,
+                location, coordinateSource, thumbnailUrl, originalImageUrl, telephone,
+                sourceModifiedAt, dataHash
+        );
+    }
+
+    public void refreshSummary(
+            String sourceContentTypeId,
+            String classificationLevel1,
+            String classificationLevel2,
+            String classificationLevel3,
+            String name,
+            Region region,
+            String roadAddress,
+            String lotAddress,
+            Point location,
+            CoordinateSource coordinateSource,
+            String thumbnailUrl,
+            String originalImageUrl,
+            String telephone,
+            Instant sourceModifiedAt,
+            String dataHash
+    ) {
+        refreshClassification(
+                sourceContentTypeId,
+                classificationLevel1,
+                classificationLevel2,
+                classificationLevel3
+        );
         this.name = requireText(name, "name");
         this.region = Objects.requireNonNull(region, "region");
         this.roadAddress = blankToNull(roadAddress);

@@ -17,6 +17,9 @@ public record TouristSummary(
         String modifiedTime,
         String telephone,
         String copyrightType,
+        String classificationLevel1,
+        String classificationLevel2,
+        String classificationLevel3,
         JsonNode rawPayload
 ) {
 }

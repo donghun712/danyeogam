@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
+import com.danyeogam.backend.common.error.RateLimitException;
 import com.danyeogam.backend.identity.domain.Actor;
 import com.danyeogam.backend.identity.repository.ActorRepository;
 import com.danyeogam.backend.stamp.api.GpsPositionRequest;
@@ -65,7 +66,7 @@ class StampVerificationServiceTest {
         );
         when(actorRepository.findActiveByIdForUpdate(42L)).thenReturn(Optional.of(Actor.anonymous()));
         when(attemptRepository.findByActorIdAndIdempotencyKey(42L, KEY)).thenReturn(Optional.empty());
-        when(attemptRepository.countByActorIdAndCreatedAtGreaterThanEqual(any(), any())).thenReturn(0L);
+        when(attemptRepository.countByActorIdAndCreatedAtBetween(any(), any(), any())).thenReturn(0L);
         when(attemptRepository.saveAndFlush(any())).thenAnswer(invocation -> {
             VerificationAttempt attempt = invocation.getArgument(0);
             ReflectionTestUtils.setField(attempt, "id", 9L);
@@ -91,6 +92,9 @@ class StampVerificationServiceTest {
         assertThat(result.status()).isEqualTo("VERIFIED_NEW");
         assertThat(result.visitState()).isEqualTo("VISITED");
         assertThat(result.collectionChanged()).isTrue();
+        verify(attemptRepository).countByActorIdAndCreatedAtBetween(
+                42L, NOW.minusSeconds(60), NOW
+        );
         verify(attemptRepository).saveAndFlush(any(VerificationAttempt.class));
         verify(visitRepository).saveAndFlush(any(Visit.class));
     }
@@ -117,7 +121,7 @@ class StampVerificationServiceTest {
     void returnsStoredResultForIdempotentReplayAndRejectsDifferentSpot() {
         VerificationAttempt stored = new VerificationAttempt(
                 42L, 7L, KEY, VerificationResult.OUT_OF_RANGE,
-                new BigDecimal("120.00"), new BigDecimal("5.00"), NOW
+                new BigDecimal("120.00"), new BigDecimal("5.00"), NOW, NOW
         );
         when(attemptRepository.findByActorIdAndIdempotencyKey(42L, KEY))
                 .thenReturn(Optional.of(stored));
@@ -136,12 +140,21 @@ class StampVerificationServiceTest {
 
     @Test
     void rateLimitsOnlyNewKeysAfterLockAndReplayCheck() {
-        when(attemptRepository.countByActorIdAndCreatedAtGreaterThanEqual(any(), any())).thenReturn(5L);
+        when(attemptRepository.countByActorIdAndCreatedAtBetween(any(), any(), any())).thenReturn(5L);
+        VerificationAttempt oldestRecentAttempt = new VerificationAttempt(
+                42L, 7L, UUID.randomUUID().toString(), VerificationResult.OUT_OF_RANGE,
+                new BigDecimal("120.00"), new BigDecimal("5.00"),
+                NOW.minusSeconds(30), NOW.minusSeconds(30)
+        );
+        when(attemptRepository.findFirstByActorIdAndCreatedAtBetweenOrderByCreatedAtAsc(
+                42L, NOW.minusSeconds(60), NOW
+        )).thenReturn(Optional.of(oldestRecentAttempt));
 
         assertThatThrownBy(() -> service.verify(42L, KEY, request("37", "127", "5", NOW)))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(ErrorCode.TOO_MANY_REQUESTS));
+                .isInstanceOfSatisfying(RateLimitException.class, exception -> {
+                    assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.TOO_MANY_REQUESTS);
+                    assertThat(exception.getRetryAfterSeconds()).isEqualTo(30);
+                });
     }
 
     @Test

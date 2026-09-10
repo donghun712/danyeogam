@@ -3,9 +3,9 @@
 ## 파일
 
 - `danyeogam_schema.sql`: MySQL 8.4용 독립 실행형 초기 스키마
-- `danyeogam_tour_seed.sql`: 2026-09-07 전국 관광지·문화시설 스탬프 카탈로그 데이터 덤프
+- `danyeogam_tour_seed.sql`: 2026-09-08 역사·문화 스탬프 카탈로그 데이터 덤프
 
-`danyeogam_tour_seed.sql` SHA-256: `eaf60c2b5238047dffde67413aeba7aa98a79e6bed6bfead000271e7cda18c70`
+`danyeogam_tour_seed.sql` SHA-256: `fde41f01e830da7409e03edb7e7c991541145a7a084b6993e2a47a52dd5fe520`
 
 ## 생성되는 범위
 
@@ -19,7 +19,7 @@
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
-빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
+빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
 
 ```powershell
 mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE C:/관광데이터/db/danyeogam_tour_seed.sql"
@@ -58,13 +58,14 @@ SHOW INDEX FROM tourist_spot;
 
 2026-09-05에는 별도 검증 DB에 스키마와 당시 전국 원본 데이터 덤프를 순서대로 복원했다.
 
-2026-09-07에는 스탬프 목적에 맞춰 관광지(12) 12,614건과 문화시설(14) 2,721건만 남긴 덤프를 새로 만들었다. 빈 DB에 백엔드를 실행해 Flyway V1을 적용한 다음 덤프를 복원하고 재기동했으며, 지역 284건, 장소 15,335건, Flyway 성공 이력 1건과 공간 인덱스 1개를 확인했다. 허용되지 않은 유형과 잘못된 좌표는 각각 0건이다.
+2026-09-08에는 세부 분류 정책에 맞춰 역사유적 2,376건, 역사유물 398건, 박물관 594건, 기념관 155건, 미술관·화랑 362건을 담은 덤프를 새로 만들었다. 별도 검증 DB에 V1·V2를 적용한 다음 덤프를 복원했으며 지역 284건, 장소 3,885건, 정책 위반 0건, 스탬프 상태 오류 0건, 공간 인덱스 1개를 확인했다.
 
 ## 중요한 정책
 
 - `tourist_spot.location`은 WGS84, SRID 4326, `NOT NULL`이다.
-- 스탬프 대상은 TourAPI 관광지 `12`와 문화시설 `14`만 허용한다.
-- 행사·축제 `15`, 여행코스 `25`, 레포츠 `28`, 숙박 `32`, 쇼핑 `38`, 음식점 `39`는 적재하지 않는다.
+- 스탬프 대상은 역사유적 `HS01`, 역사유물 `HS02`, 박물관 `VE070100`, 기념관 `VE070200`, 미술관·화랑 `VE070600`만 허용한다.
+- 종교성지 `HS03`, 안보관광지 `HS04`, 랜드마크와 그 밖의 관광·문화 분류는 적재하지 않는다.
+- 행사·축제 `15`, 여행코스 `25`, 레포츠 `28`, 숙박 `32`, 쇼핑 `38`, 음식점 `39`도 적재하지 않는다.
 - 좌표가 없거나 의심스러운 원본은 `tourist_spot_staging`에서 정제한 뒤 승격한다.
 - `visit(actor_id, tourist_spot_id)` 유니크 제약으로 장소당 최초 스탬프 한 번만 저장한다.
 - `verification_attempt(actor_id, idempotency_key)` 유니크 제약으로 재전송을 안전하게 처리한다.
@@ -83,4 +84,4 @@ SHOW INDEX FROM tourist_spot;
 
 키 원문은 SQL 파일이나 DB 일반 테이블에 저장하지 않고 배포 환경의 Secret으로 주입한다.
 
-Spring Boot 프로젝트를 생성할 때는 이 파일의 테이블 DDL을 Flyway `V1__init_schema.sql`로 옮기고, 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.
+백엔드에서는 `V1__init_schema.sql`과 `V2__add_tour_classification.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.

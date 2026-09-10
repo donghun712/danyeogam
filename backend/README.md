@@ -4,7 +4,7 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 
 ## 현재 단계
 
-프론트 연결 전 백엔드 준비를 완료했다. 카카오 Local 실연동, 분리 MySQL 전체 통합 테스트, 전국 TourAPI 초기 카탈로그 적재, Swagger/OpenAPI 계약 생성을 검증했다.
+프론트 연결 전 백엔드 준비를 완료했다. 카카오 Local 실연동, 분리 MySQL 통합 테스트, 세부 분류 기반 전국 TourAPI 카탈로그 적재, Swagger/OpenAPI 계약 생성을 검증했다.
 
 - Spring Boot 3.5.16
 - Java 17
@@ -14,7 +14,7 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 - Flyway MySQL 마이그레이션
 - 로컬 MySQL 8.4 Docker Compose
 - 한국관광공사 국문 관광정보 `KorService2` 클라이언트
-- 지역 기반 관광지·문화시설 및 대표 이미지 조회
+- 역사유적·역사유물·선정 문화시설 및 대표 이미지 조회
 - 관광지별 상세 이미지와 저작권 유형 조회
 - 공통 성공·오류 JSON 응답과 필드 검증 오류
 - 안전한 `X-Request-Id` 전달·생성 및 MDC 정리
@@ -58,7 +58,7 @@ $env:SPRING_PROFILES_ACTIVE='local'
 .\gradlew.bat bootRun
 ```
 
-Flyway가 최초 실행 시 `src/main/resources/db/migration/V1__init_schema.sql`을 자동 적용한다.
+Flyway가 최초 실행 시 `src/main/resources/db/migration`의 V1 초기 스키마와 V2 관광 세부 분류 마이그레이션을 순서대로 적용한다.
 프로젝트 루트의 `.env`는 Spring 설정에서 선택적으로 불러오며 Git 추적 대상에서 제외된다.
 
 기본 포트는 `8080`이며 헬스체크는 다음 경로에서 확인한다.
@@ -76,7 +76,7 @@ GET http://localhost:8080/actuator/health
 ### 2단계 검증 결과
 
 - Gradle 테스트 성공
-- 분리된 임시 MySQL 8.0.44에서 Flyway V1 적용 성공
+- 분리된 임시 MySQL 8.0.44에서 Flyway V1·V2 적용 성공
 - 애플리케이션 시작 시 14개 서비스 테이블과 `flyway_schema_history` 생성 확인
 - `tourist_spot.location`의 SRID 4326 및 SPATIAL 인덱스 확인
 - DB 연결 상태에서 `/actuator/health` 응답 `UP` 확인
@@ -182,7 +182,7 @@ GPS 인증 계약은 `docs/frontend-stamp-api.md`에 정리했다.
 ### 프론트 연결 준비 7단계 검증 결과
 
 - TourAPI 좌표가 정상일 때 그대로 유지하고 좌표가 누락·이상인 경우에만 주소 기반 카카오 보정 시도
-- 유효한 좌표로 승격된 모든 TourAPI 관광지를 `STAMP_TARGET`으로 활성화하고 운영 GPS 기본 반경 적용
+- 선정 정책과 좌표 검증을 모두 통과한 TourAPI 장소만 `STAMP_TARGET`으로 활성화하고 운영 GPS 기본 반경 적용
 - 보정 좌표 출처를 `KAKAO_GEOCODE`로 분리 저장하는 staging·관광지 승격 경로 구현
 - `POST /api/v1/geo/reverse` 현재 위치 역지오코딩 구현
 - `GET /api/v1/tourist-spots/{spotId}/parking` 카카오 `PK6` 주변 주차장 후보 조회 구현
@@ -209,12 +209,14 @@ $env:RUN_LIVE_KAKAO_API_TESTS='true'
 
 ### 최종 백엔드 단독 검증 결과
 
-- 2026-09-07 분리된 임시 MySQL 8.0.44에서 전체 테스트 87건 통과, 실패·오류·제외 0건
-- Flyway, Repository, 공간 인덱스, 세션, GPS 인증, 도감, 실제 TourAPI·카카오 호출까지 함께 검증
-- 전국 TourAPI 원본 49,772건 중 스탬프 목적에 맞는 관광지(12) 12,614건과 문화시설(14) 2,721건만 적재
-- 지역 284건, 활성 스탬프 대상 15,335건, 대표 원본·썸네일 보유 장소 14,192건 확인
-- TourAPI 좌표 15,319건, 카카오 주소 보정 좌표 16건 확인
-- 독립 복원용 데이터 덤프 `../db/danyeogam_tour_seed.sql` 생성 후 별도 DB 복원 검증
+- 2026-09-09 기본 회귀 테스트 총 102건 중 92건 통과, 실패·오류 0건, 외부 선택 테스트 10건 제외
+- 실제 MySQL 관광지 선정·비활성화 통합 테스트 2건 별도 통과
+- 실제 MySQL에서 KST·UTC가 섞인 과거 인증 시도가 1분 제한에 영구 포함되지 않는 회귀 테스트 통과
+- Flyway V1·V2, Repository, 공간 인덱스, 세션, GPS 인증, 도감, 실제 TourAPI·카카오 호출 검증
+- TourAPI 세부 분류에서 역사유적 `HS01`, 역사유물 `HS02`, 박물관 `VE070100`, 기념관 `VE070200`, 미술관·화랑 `VE070600`만 선정
+- 지역 284건, 활성 스탬프 대상 3,885건, 대표 원본·썸네일 보유 3,629건 확인
+- TourAPI 좌표 3,884건, 카카오 주소 보정 좌표 1건 확인
+- 기존 비선정 11,450건은 삭제하지 않고 비활성화하고, 활성 대상만 담은 독립 복원용 데이터 덤프를 생성
 - `/v3/api-docs`, `/v3/api-docs.yaml`, `/swagger-ui.html` 응답 및 9개 API 경로 검증
 - 동시 요청 20개 부하, GPS 멱등 동시성, 전국 16개 광역 도감 합계와 gzip 응답 압축 검증
 
@@ -222,14 +224,14 @@ $env:RUN_LIVE_KAKAO_API_TESTS='true'
 
 ## TourAPI 적재 실행
 
-`.env`에서 실행 범위를 지정한다. `TOUR_SYNC_ENABLED=true`로 서버를 한 번 실행한 뒤 다시 `false`로 되돌려 일반 실행마다 작업이 시작되지 않게 한다. 동기화 대상 유형은 코드 정책으로 관광지 `12`와 문화시설 `14`만 허용한다.
+`.env`에서 실행 범위를 지정한다. `TOUR_SYNC_ENABLED=true`로 서버를 한 번 실행한 뒤 다시 `false`로 되돌려 일반 실행마다 작업이 시작되지 않게 한다. 동기화 대상은 코드 정책으로 역사유적 `HS01`, 역사유물 `HS02`, 박물관 `VE070100`, 기념관 `VE070200`, 미술관·화랑 `VE070600`만 허용한다.
 
 ```text
 TOUR_SYNC_ENABLED=true
-TOUR_SYNC_AREA_CODE=1
-TOUR_SYNC_PAGE_SIZE=50
-TOUR_SYNC_MAX_PAGES=1
-TOUR_SYNC_HYDRATE_DETAILS=true
+TOUR_SYNC_AREA_CODE=
+TOUR_SYNC_PAGE_SIZE=1000
+TOUR_SYNC_MAX_PAGES=3
+TOUR_SYNC_HYDRATE_DETAILS=false
 ```
 
 ```powershell
@@ -237,11 +239,11 @@ $env:SPRING_PROFILES_ACTIVE='local'
 .\gradlew.bat bootRun
 ```
 
-개발키 호출량을 보호하기 위해 기본값은 유형별 1페이지다. 행사·축제(15), 여행코스(25), 레포츠(28), 숙박(32), 쇼핑(38), 음식점(39)은 API 요청 단계에서 제외된다. 전국 초기 카탈로그는 허용 유형의 목록과 대표 이미지를 적재했으며, 장소별 상세 설명과 추가 이미지 전체 수집은 호출량을 확인한 뒤 증분 실행한다. 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
+위 값은 전국 목록만 갱신하는 권장 예다. 빈 `TOUR_SYNC_AREA_CODE`는 전국을 뜻하며, 모든 선정 조건의 마지막 페이지까지 읽었을 때만 기존 비선정 TourAPI 행을 비활성화한다. 특정 지역이나 제한된 페이지로 실행하면 전역 비활성화는 하지 않는다. 장소별 상세 설명과 추가 이미지 전체 수집은 호출량을 확인한 뒤 `TOUR_SYNC_HYDRATE_DETAILS=true`로 증분 실행한다. 선정 정책은 `docs/tourist-spot-selection-policy.md`, 필드 매핑은 `docs/tourapi-field-mapping.md`에 기록했다.
 
 ## 다음 단계
 
-백엔드 단독으로 가능한 검증은 완료했다. 이후 작업은 프론트 소스가 전달되면 OpenAPI 계약을 기준으로 연결하고, 배포 환경의 MySQL·HTTPS·CORS·Secret을 설정한 뒤 실제 기기 GPS 인증을 점검하는 것이다.
+백엔드 단독 검증과 로컬 프론트 연결 준비를 완료했다. 이후에는 실제 화면에서 지도·도감 흐름을 확인하고, 배포 환경의 MySQL·HTTPS·CORS·Secret을 설정한 뒤 실제 기기 GPS 인증을 점검한다.
 
 ## 운영 환경변수
 

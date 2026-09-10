@@ -43,6 +43,8 @@ class TourApiClientTest {
                 .andExpect(queryParam("numOfRows", "10"))
                 .andExpect(queryParam("areaCode", "1"))
                 .andExpect(queryParam("contentTypeId", "12"))
+                .andExpect(queryParam("lclsSystm1", "HS"))
+                .andExpect(queryParam("lclsSystm2", "HS01"))
                 .andRespond(withSuccess("""
                         {
                           "response": {
@@ -60,6 +62,9 @@ class TourApiClientTest {
                                 "mapy": "37.5788222356",
                                 "firstimage": "https://image.test/original.jpg",
                                 "firstimage2": "https://image.test/thumbnail.jpg",
+                                "lclsSystm1": "HS",
+                                "lclsSystm2": "HS01",
+                                "lclsSystm3": "HS010100",
                                 "modifiedtime": "20260101000000"
                               }]},
                               "numOfRows": 10,
@@ -70,7 +75,9 @@ class TourApiClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        TourApiPage<TouristSummary> page = client.getAreaBasedList(1, 10, "1", "12");
+        TourApiPage<TouristSummary> page = client.getAreaBasedList(
+                1, 10, "1", "12", "HS", "HS01", null
+        );
 
         assertThat(page.totalCount()).isEqualTo(1);
         assertThat(page.items()).singleElement().satisfies(spot -> {
@@ -78,6 +85,9 @@ class TourApiClientTest {
             assertThat(spot.title()).isEqualTo("경복궁");
             assertThat(spot.firstImageUrl()).isEqualTo("https://image.test/original.jpg");
             assertThat(spot.firstThumbnailUrl()).isEqualTo("https://image.test/thumbnail.jpg");
+            assertThat(spot.classificationLevel1()).isEqualTo("HS");
+            assertThat(spot.classificationLevel2()).isEqualTo("HS01");
+            assertThat(spot.classificationLevel3()).isEqualTo("HS010100");
         });
         server.verify();
     }

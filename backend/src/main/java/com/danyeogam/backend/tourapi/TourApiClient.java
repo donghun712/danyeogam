@@ -59,6 +59,20 @@ public class TourApiClient {
             String areaCode,
             String contentTypeId
     ) {
+        return getAreaBasedList(
+                pageNo, numOfRows, areaCode, contentTypeId, null, null, null
+        );
+    }
+
+    public TourApiPage<TouristSummary> getAreaBasedList(
+            int pageNo,
+            int numOfRows,
+            String areaCode,
+            String contentTypeId,
+            String classificationLevel1,
+            String classificationLevel2,
+            String classificationLevel3
+    ) {
         validatePage(pageNo, numOfRows);
         JsonNode body = get("/areaBasedList2", uriBuilder -> {
             UriBuilder builder = commonQuery(uriBuilder, pageNo, numOfRows)
@@ -68,6 +82,15 @@ public class TourApiClient {
             }
             if (StringUtils.hasText(contentTypeId)) {
                 builder.queryParam("contentTypeId", contentTypeId);
+            }
+            if (StringUtils.hasText(classificationLevel1)) {
+                builder.queryParam("lclsSystm1", classificationLevel1);
+            }
+            if (StringUtils.hasText(classificationLevel2)) {
+                builder.queryParam("lclsSystm2", classificationLevel2);
+            }
+            if (StringUtils.hasText(classificationLevel3)) {
+                builder.queryParam("lclsSystm3", classificationLevel3);
             }
             return builder.build();
         });
@@ -87,6 +110,9 @@ public class TourApiClient {
                 text(item, "modifiedtime"),
                 text(item, "tel"),
                 text(item, "cpyrhtDivCd"),
+                text(item, "lclsSystm1"),
+                text(item, "lclsSystm2"),
+                text(item, "lclsSystm3"),
                 item.deepCopy()
         ));
     }

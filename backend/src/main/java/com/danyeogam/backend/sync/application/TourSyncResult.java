@@ -9,6 +9,7 @@ public record TourSyncResult(
         int processedCount,
         int insertedCount,
         int updatedCount,
+        int deactivatedCount,
         int failedCount,
         int apiRequestCount
 ) {

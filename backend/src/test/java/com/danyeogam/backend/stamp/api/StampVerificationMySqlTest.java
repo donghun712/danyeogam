@@ -2,6 +2,7 @@ package com.danyeogam.backend.stamp.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -98,6 +99,7 @@ class StampVerificationMySqlTest {
 
         perform(token, UUID.randomUUID().toString(), firstSpot.getId(), "37.0", "127.0", "5", now)
                 .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists(HttpHeaders.RETRY_AFTER))
                 .andExpect(jsonPath("$.error.code").value("TOO_MANY_REQUESTS"));
 
         String secondToken = issueSession();
@@ -122,6 +124,26 @@ class StampVerificationMySqlTest {
         } finally {
             pool.shutdownNow();
         }
+    }
+
+    @Test
+    void ignoresFutureDatedLegacyRowsWhenCalculatingRateLimit() throws Exception {
+        String token = issueSession();
+        Long actorId = actorId(token);
+        for (int index = 0; index < 5; index++) {
+            jdbcTemplate.update("""
+                    INSERT INTO verification_attempt (
+                        actor_id, tourist_spot_id, idempotency_key, result,
+                        distance_meters, accuracy_meters, measured_at, created_at
+                    ) VALUES (?, ?, ?, 'GPS_ACCURACY_INSUFFICIENT', NULL, 150,
+                              UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 9 HOUR)
+                    """, actorId, firstSpot.getId(), UUID.randomUUID().toString());
+        }
+
+        perform(token, UUID.randomUUID().toString(), firstSpot.getId(),
+                "37.0", "127.0", "51", Instant.now())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("GPS_ACCURACY_INSUFFICIENT"));
     }
 
     private TouristSpot stampSpot(String contentId, String name, Region region, double lon, double lat) {

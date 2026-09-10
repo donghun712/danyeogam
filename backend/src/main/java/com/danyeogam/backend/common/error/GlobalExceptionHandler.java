@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +27,20 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(RateLimitException.class)
+    ResponseEntity<ApiErrorResponse> handleRateLimitException(RateLimitException exception) {
+        ApiError error = new ApiError(
+                ErrorCode.TOO_MANY_REQUESTS.name(),
+                exception.getMessage(),
+                true,
+                List.of()
+        );
+        return ResponseEntity.status(ErrorCode.TOO_MANY_REQUESTS.status())
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.getRetryAfterSeconds()))
+                .cacheControl(CacheControl.noStore())
+                .body(new ApiErrorResponse(error, ApiMeta.now()));
+    }
 
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException exception) {

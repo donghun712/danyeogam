@@ -38,7 +38,7 @@ public class ApiWebConfiguration implements WebMvcConfigurer {
                     .allowedOrigins(origins.toArray(String[]::new))
                     .allowedMethods("GET", "POST", "OPTIONS")
                     .allowedHeaders("Content-Type", "Idempotency-Key", "X-Request-Id")
-                    .exposedHeaders("X-Request-Id")
+                    .exposedHeaders("X-Request-Id", "Retry-After")
                     .allowCredentials(true)
                     .maxAge(3600);
         }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CollectionRegionSelector } from "@/components/collection/CollectionRegionSelector";
 import { CollectionProgress } from "@/components/collection/CollectionProgress";
 import { CollectionCard } from "@/components/collection/CollectionCard";
@@ -23,18 +23,17 @@ import styles from "./CollectionPage.module.css";
  */
 export function CollectionPage() {
   const summary = useCollectionSummary();
-  const [selectedRegionCode, setSelectedRegionCode] = useState<string | null>(
+  const [preferredRegionCode, setPreferredRegionCode] = useState<string | null>(
     null,
   );
 
-  // 요약이 로드되면 첫 번째 지역을 기본 선택한다(문서에 별도 기본 지역 규칙이 없어
-  // API가 반환한 목록의 첫 항목을 사용한다).
-  useEffect(() => {
-    if (summary.status === "success" && selectedRegionCode === null) {
-      // 최초 진입 시 기본 지역을 정하는 의도적인 setState (문서에 규칙이 없어 첫 항목 사용).
-      setSelectedRegionCode(summary.regions[0]?.code ?? null);
-    }
-  }, [summary.status, summary.regions, selectedRegionCode]);
+  // 사용자가 고른 지역이 현재 요약에 있으면 유지하고, 최초 진입 또는 목록 변경 시에는
+  // API가 반환한 첫 지역을 렌더링 단계에서 기본값으로 사용한다.
+  const selectedRegionCode = summary.regions.some(
+    (region) => region.code === preferredRegionCode,
+  )
+    ? preferredRegionCode
+    : (summary.regions[0]?.code ?? null);
 
   const list = useCollectionList(selectedRegionCode);
   const selectedSummary = summary.regions.find(
@@ -71,7 +70,7 @@ export function CollectionPage() {
           <CollectionRegionSelector
             regions={summary.regions}
             selectedCode={selectedRegionCode}
-            onChange={setSelectedRegionCode}
+            onChange={setPreferredRegionCode}
           />
 
           {selectedSummary && <CollectionProgress summary={selectedSummary} />}

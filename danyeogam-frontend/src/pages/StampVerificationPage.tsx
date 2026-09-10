@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FullPageLayout } from "@/components/common/FullPageLayout";
 import { Button } from "@/components/common/Button";
@@ -23,11 +24,47 @@ const HTTP_ERROR_MESSAGE: Record<string, string> = {
   ORIGIN_NOT_ALLOWED: "지금은 인증을 처리할 수 없어요.",
   TOURIST_SPOT_NOT_FOUND: "관광지 정보를 찾을 수 없어요.",
   IDEMPOTENCY_KEY_CONFLICT: "요청이 겹쳤어요. 다시 시도해 주세요.",
-  TOO_MANY_REQUESTS: "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
+  TOO_MANY_REQUESTS: "요청 횟수를 초과했어요.",
   VALIDATION_FAILED: "요청 처리 중 문제가 발생했어요.",
   INVALID_REQUEST: "요청 처리 중 문제가 발생했어요.",
   UNSUPPORTED_MEDIA_TYPE: "요청 처리 중 문제가 발생했어요.",
 };
+
+interface RateLimitRetryProps {
+  initialSeconds: number;
+  onRetry: () => void;
+}
+
+function RateLimitRetry({ initialSeconds, onRetry }: RateLimitRetryProps) {
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    Math.max(0, initialSeconds),
+  );
+
+  useEffect(() => {
+    if (remainingSeconds <= 0) return;
+    const timer = window.setTimeout(() => {
+      setRemainingSeconds((current) => Math.max(0, current - 1));
+    }, 1_000);
+    return () => window.clearTimeout(timer);
+  }, [remainingSeconds]);
+
+  return (
+    <>
+      {remainingSeconds > 0 && (
+        <p className="text-caption">
+          {remainingSeconds}초 후 다시 시도할 수 있어요.
+        </p>
+      )}
+      <Button
+        variant="secondary"
+        onClick={onRetry}
+        disabled={remainingSeconds > 0}
+      >
+        {remainingSeconds > 0 ? `${remainingSeconds}초 기다리기` : "다시 시도하기"}
+      </Button>
+    </>
+  );
+}
 
 /**
  * 화면시안 "04 스탬프 인증(GPS 확인)" + "05 스탬프 획득" — 같은 화면 안에서 단계별로 전환된다.
@@ -41,7 +78,15 @@ export function StampVerificationPage() {
   const parsedId = attractionId ? Number(attractionId) : NaN;
   const spotId = Number.isFinite(parsedId) ? parsedId : null;
 
-  const { phase, result, errorCode, isBusy, start, lastMeasurement } =
+  const {
+    phase,
+    result,
+    errorCode,
+    retryAfterSeconds,
+    isBusy,
+    start,
+    lastMeasurement,
+  } =
     useStampVerification(spotId ?? -1);
   // 인장에 넣을 관광지명만 필요해서 STAMP-01 응답과 별개로 상세를 조회한다(이름 필드가 없음).
   const { detail } = useAttractionDetail(spotId);
@@ -108,9 +153,17 @@ export function StampVerificationPage() {
                 "인증 중 오류가 발생했어요."}
             </p>
             {errorCode && <p className="text-caption">{errorCode}</p>}
-            <Button variant="secondary" onClick={start} disabled={isBusy}>
-              다시 시도하기
-            </Button>
+            {errorCode === "TOO_MANY_REQUESTS" && retryAfterSeconds !== null ? (
+              <RateLimitRetry
+                key={retryAfterSeconds}
+                initialSeconds={retryAfterSeconds}
+                onRetry={start}
+              />
+            ) : (
+              <Button variant="secondary" onClick={start} disabled={isBusy}>
+                다시 시도하기
+              </Button>
+            )}
           </div>
         )}
 

@@ -3,6 +3,7 @@ package com.danyeogam.backend.stamp.application;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 import com.danyeogam.backend.common.error.BusinessException;
 import com.danyeogam.backend.common.error.ErrorCode;
+import com.danyeogam.backend.common.error.RateLimitException;
 import com.danyeogam.backend.identity.repository.ActorRepository;
 import com.danyeogam.backend.stamp.api.GpsPositionRequest;
 import com.danyeogam.backend.stamp.api.StampVerificationRequest;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("!test")
 public class StampVerificationService {
 
+    private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
     private static final Instant MYSQL_MIN_INSTANT = Instant.parse("1000-01-01T00:00:00Z");
     private static final Instant MYSQL_MAX_INSTANT = Instant.parse("9999-12-31T23:59:59Z");
 
@@ -81,11 +84,20 @@ public class StampVerificationService {
             return responseForStored(actorId, replay.get());
         }
 
-        long recentAttempts = attemptRepository.countByActorIdAndCreatedAtGreaterThanEqual(
-                actorId, now.minusSeconds(60)
+        Instant rateLimitSince = now.minus(RATE_LIMIT_WINDOW);
+        long recentAttempts = attemptRepository.countByActorIdAndCreatedAtBetween(
+                actorId, rateLimitSince, now
         );
         if (recentAttempts >= properties.getMaxAttemptsPerMinute()) {
-            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
+            long retryAfterSeconds = attemptRepository
+                    .findFirstByActorIdAndCreatedAtBetweenOrderByCreatedAtAsc(
+                            actorId, rateLimitSince, now
+                    )
+                    .map(attempt -> secondsUntil(
+                            now, attempt.getCreatedAt().plus(RATE_LIMIT_WINDOW)
+                    ))
+                    .orElse(RATE_LIMIT_WINDOW.toSeconds());
+            throw new RateLimitException(retryAfterSeconds);
         }
 
         TouristSpot spot = spotRepository.findById(request.touristSpotId())
@@ -147,6 +159,11 @@ public class StampVerificationService {
                 visit.getVerifiedAt(), true, true);
     }
 
+    private static long secondsUntil(Instant now, Instant expiresAt) {
+        long millis = Duration.between(now, expiresAt).toMillis();
+        return Math.max(1, (millis + 999) / 1000);
+    }
+
     private StampVerificationResponse recordResult(
             long actorId,
             long spotId,
@@ -177,7 +194,7 @@ public class StampVerificationService {
             Instant measuredAt
     ) {
         return attemptRepository.saveAndFlush(new VerificationAttempt(
-                actorId, spotId, key, result, distance, accuracy, measuredAt
+                actorId, spotId, key, result, distance, accuracy, measuredAt, clock.instant()
         ));
     }
 

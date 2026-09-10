@@ -10,5 +10,11 @@ public interface VerificationAttemptRepository extends JpaRepository<Verificatio
 
     Optional<VerificationAttempt> findByActorIdAndIdempotencyKey(Long actorId, String idempotencyKey);
 
-    long countByActorIdAndCreatedAtGreaterThanEqual(Long actorId, Instant since);
+    long countByActorIdAndCreatedAtBetween(Long actorId, Instant since, Instant until);
+
+    Optional<VerificationAttempt> findFirstByActorIdAndCreatedAtBetweenOrderByCreatedAtAsc(
+            Long actorId,
+            Instant since,
+            Instant until
+    );
 }

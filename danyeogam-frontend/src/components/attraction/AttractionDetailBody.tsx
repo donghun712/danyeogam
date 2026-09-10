@@ -87,8 +87,6 @@ export function AttractionDetailBody({
       )}
 
       {actions && <div className={styles.actions}>{actions}</div>}
-
-      {/* TODO(STEP 6): 스탬프 인증 버튼 — GPS 측정 → POST /stamp-verifications 연동 */}
     </div>
   );
 }

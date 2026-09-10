@@ -36,6 +36,7 @@ interface StampVerificationState {
   phase: StampVerificationPhase;
   result: StampVerificationResult | null;
   errorCode: string | null;
+  retryAfterSeconds: number | null;
   lastMeasurement: LastMeasurement | null;
 }
 
@@ -44,6 +45,7 @@ export function useStampVerification(touristSpotId: number) {
     phase: "ready",
     result: null,
     errorCode: null,
+    retryAfterSeconds: null,
     lastMeasurement: null,
   });
   // 중복 클릭 방지: setState는 비동기라 즉시 참조 가능한 ref로도 같이 막는다.
@@ -54,7 +56,13 @@ export function useStampVerification(touristSpotId: number) {
     isBusyRef.current = true;
 
     // 새 시도를 시작하므로 이전 측정값 표시도 지운다(다음 측정이 나올 때까지 낡은 값을 보여주지 않음).
-    setState({ phase: "measuring", result: null, errorCode: null, lastMeasurement: null });
+    setState({
+      phase: "measuring",
+      result: null,
+      errorCode: null,
+      retryAfterSeconds: null,
+      lastMeasurement: null,
+    });
 
     if (!("geolocation" in navigator)) {
       isBusyRef.current = false;
@@ -62,6 +70,7 @@ export function useStampVerification(touristSpotId: number) {
         phase: "gps_unavailable",
         result: null,
         errorCode: null,
+        retryAfterSeconds: null,
         lastMeasurement: null,
       });
       return;
@@ -94,6 +103,7 @@ export function useStampVerification(touristSpotId: number) {
               phase: "result",
               result,
               errorCode: null,
+              retryAfterSeconds: null,
             }));
             if (
               result.status === "VERIFIED_NEW" ||
@@ -115,6 +125,10 @@ export function useStampVerification(touristSpotId: number) {
               phase: "http_error",
               result: null,
               errorCode: code,
+              retryAfterSeconds:
+                error instanceof ApiError && code === "TOO_MANY_REQUESTS"
+                  ? (error.retryAfterSeconds ?? 60)
+                  : null,
             }));
           });
       },
@@ -125,6 +139,7 @@ export function useStampVerification(touristSpotId: number) {
             phase: "gps_permission_denied",
             result: null,
             errorCode: null,
+            retryAfterSeconds: null,
             lastMeasurement: null,
           });
         } else if (error.code === error.TIMEOUT) {
@@ -132,6 +147,7 @@ export function useStampVerification(touristSpotId: number) {
             phase: "gps_timeout",
             result: null,
             errorCode: null,
+            retryAfterSeconds: null,
             lastMeasurement: null,
           });
         } else {
@@ -139,6 +155,7 @@ export function useStampVerification(touristSpotId: number) {
             phase: "gps_unavailable",
             result: null,
             errorCode: null,
+            retryAfterSeconds: null,
             lastMeasurement: null,
           });
         }

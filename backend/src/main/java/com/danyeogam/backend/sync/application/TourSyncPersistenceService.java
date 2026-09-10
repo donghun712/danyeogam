@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.danyeogam.backend.sync.domain.SyncErrorRecord;
@@ -146,10 +147,30 @@ class TourSyncPersistenceService {
         }
     }
 
+    @Transactional
+    void updateClassificationIfPresent(TouristSummary summary) {
+        spotRepository.findBySourceAndSourceContentId("TOUR_API", summary.contentId())
+                .ifPresent(spot -> spot.refreshClassification(
+                        summary.contentTypeId(),
+                        summary.classificationLevel1(),
+                        summary.classificationLevel2(),
+                        summary.classificationLevel3()
+                ));
+    }
+
     @Transactional(readOnly = true)
-    boolean isUnchanged(String sourceContentId, String dataHash) {
-        return spotRepository.findBySourceAndSourceContentId("TOUR_API", sourceContentId)
+    boolean isUnchanged(TouristSummary summary, String dataHash) {
+        return spotRepository.findBySourceAndSourceContentId("TOUR_API", summary.contentId())
                 .map(spot -> spot.getDataHash().equals(dataHash)
+                        && Objects.equals(
+                                spot.getClassificationLevel1(), summary.classificationLevel1()
+                        )
+                        && Objects.equals(
+                                spot.getClassificationLevel2(), summary.classificationLevel2()
+                        )
+                        && Objects.equals(
+                                spot.getClassificationLevel3(), summary.classificationLevel3()
+                        )
                         && spot.getSpotType() == SpotType.STAMP_TARGET
                         && spot.isStampEnabled())
                 .orElse(false);
@@ -190,6 +211,9 @@ class TourSyncPersistenceService {
         ));
         spot.refreshSummary(
                 summary.contentTypeId(),
+                summary.classificationLevel1(),
+                summary.classificationLevel2(),
+                summary.classificationLevel3(),
                 summary.title(),
                 region,
                 summary.address(),
@@ -246,6 +270,11 @@ class TourSyncPersistenceService {
 
         staging.markPromoted();
         return existing.isPresent() ? ImportOutcome.UPDATED : ImportOutcome.INSERTED;
+    }
+
+    @Transactional
+    int deactivateOutsideSelectionPolicy() {
+        return spotRepository.deactivateOutsideSelectionPolicy();
     }
 
     @Transactional

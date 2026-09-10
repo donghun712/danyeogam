@@ -2,6 +2,9 @@ package com.danyeogam.backend.touristspot.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
+
+import com.danyeogam.backend.touristspot.domain.CoordinateSource;
 import com.danyeogam.backend.touristspot.domain.Region;
 import com.danyeogam.backend.touristspot.domain.TouristSpot;
 import com.danyeogam.backend.touristspot.domain.TouristSpotImage;
@@ -80,6 +83,67 @@ class TouristSpotRepositoryMySqlTest {
                     assertThat(image.getUrl()).isEqualTo("https://image.test/tourist-spot.jpg");
                     assertThat(image.getCopyrightType()).isEqualTo("Type1");
                 });
+    }
+
+    @Test
+    void persistsClassificationAndDeactivatesOnlySpotsOutsideSelectionPolicy() {
+        Region province = regionRepository.saveAndFlush(Region.province("TOUR:AREA:11", "서울특별시"));
+        TouristSpot selected = spotWithClassification(
+                "SELECTED", "선정 박물관", province, "14", "VE", "VE07", "VE070100"
+        );
+        TouristSpot excluded = spotWithClassification(
+                "EXCLUDED", "제외 교육시설", province, "14", "VE", "VE09", "VE090100"
+        );
+        TouristSpot unclassified = TouristSpot.fromTourApi(
+                "UNCLASSIFIED", "12", "미분류 기존 관광지", province,
+                point(127.1, 37.1), HASH
+        );
+        unclassified.enableStampTarget(100);
+        touristSpotRepository.saveAndFlush(selected);
+        touristSpotRepository.saveAndFlush(excluded);
+        touristSpotRepository.saveAndFlush(unclassified);
+
+        assertThat(touristSpotRepository.deactivateOutsideSelectionPolicy()).isEqualTo(2);
+        entityManager.clear();
+
+        TouristSpot loadedSelected = touristSpotRepository
+                .findBySourceAndSourceContentId("TOUR_API", "SELECTED")
+                .orElseThrow();
+        TouristSpot loadedExcluded = touristSpotRepository
+                .findBySourceAndSourceContentId("TOUR_API", "EXCLUDED")
+                .orElseThrow();
+        TouristSpot loadedUnclassified = touristSpotRepository
+                .findBySourceAndSourceContentId("TOUR_API", "UNCLASSIFIED")
+                .orElseThrow();
+        assertThat(loadedSelected.isActive()).isTrue();
+        assertThat(loadedSelected.isStampEnabled()).isTrue();
+        assertThat(loadedSelected.getClassificationLevel3()).isEqualTo("VE070100");
+        assertThat(loadedExcluded.isActive()).isFalse();
+        assertThat(loadedExcluded.isStampEnabled()).isFalse();
+        assertThat(loadedExcluded.getStampRadiusMeters()).isNull();
+        assertThat(loadedUnclassified.isActive()).isFalse();
+        assertThat(loadedUnclassified.isStampEnabled()).isFalse();
+    }
+
+    private static TouristSpot spotWithClassification(
+            String contentId,
+            String name,
+            Region region,
+            String contentTypeId,
+            String level1,
+            String level2,
+            String level3
+    ) {
+        TouristSpot spot = TouristSpot.fromTourApi(
+                contentId, contentTypeId, name, region, point(127.0, 37.0), HASH
+        );
+        spot.refreshSummary(
+                contentTypeId, level1, level2, level3, name, region,
+                null, null, point(127.0, 37.0), CoordinateSource.TOUR_API,
+                null, null, null, Instant.parse("2026-09-08T00:00:00Z"), HASH
+        );
+        spot.enableStampTarget(100);
+        return spot;
     }
 
     private static Point point(double longitude, double latitude) {

@@ -7,8 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.danyeogam.backend.common.error.BusinessException;
-import com.danyeogam.backend.common.error.ErrorCode;
+import com.danyeogam.backend.common.error.RateLimitException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +47,7 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
                 : properties.getRequestsPerMinute();
         ClientBucket key = new ClientBucket(normalizeAddress(request.getRemoteAddr()), type);
         AtomicBoolean allowed = new AtomicBoolean(false);
+        AtomicLong retryAfterSeconds = new AtomicLong(WINDOW_SECONDS);
 
         windows.compute(key, (ignored, existing) -> {
             if (existing == null || existing.expiresAtEpochSecond() <= nowEpochSecond) {
@@ -58,6 +58,7 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
                 return new Window(nowEpochSecond + WINDOW_SECONDS, 1);
             }
             if (existing.count() >= limit) {
+                retryAfterSeconds.set(Math.max(1, existing.expiresAtEpochSecond() - nowEpochSecond));
                 return existing;
             }
             allowed.set(true);
@@ -65,8 +66,8 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
         });
 
         if (!allowed.get()) {
-            response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(WINDOW_SECONDS));
-            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
+            response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(retryAfterSeconds.get()));
+            throw new RateLimitException(retryAfterSeconds.get());
         }
         return true;
     }

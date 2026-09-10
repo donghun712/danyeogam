@@ -88,6 +88,13 @@ public class SyncRun {
         updatedCount++;
     }
 
+    public void recordDeactivated(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("비활성화 건수는 음수일 수 없습니다.");
+        }
+        deactivatedCount += count;
+    }
+
     public void recordFailed() {
         failedCount++;
     }

@@ -87,6 +87,7 @@ class TourSpotValidatorTest {
                 contentId, "12", title, "주소", "", areaCode, districtCode,
                 longitude, latitude, "https://image.test/original.jpg",
                 "https://image.test/thumb.jpg", "20260101000000", "02-0000-0000", "Type1",
+                "HS", "HS01", "HS010100",
                 objectMapper.createObjectNode()
                         .put("contentid", contentId)
                         .put("title", title)
