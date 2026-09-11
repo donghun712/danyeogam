@@ -36,7 +36,7 @@ public class ApiWebConfiguration implements WebMvcConfigurer {
         if (!origins.isEmpty()) {
             registry.addMapping("/api/**")
                     .allowedOrigins(origins.toArray(String[]::new))
-                    .allowedMethods("GET", "POST", "OPTIONS")
+                    .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
                     .allowedHeaders("Content-Type", "Idempotency-Key", "X-Request-Id")
                     .exposedHeaders("X-Request-Id", "Retry-After")
                     .allowCredentials(true)

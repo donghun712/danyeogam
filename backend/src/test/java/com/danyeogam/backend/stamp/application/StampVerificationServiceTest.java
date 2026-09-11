@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import com.danyeogam.backend.common.error.BusinessException;
@@ -26,6 +27,7 @@ import com.danyeogam.backend.stamp.config.StampVerificationProperties;
 import com.danyeogam.backend.stamp.domain.VerificationAttempt;
 import com.danyeogam.backend.stamp.domain.VerificationResult;
 import com.danyeogam.backend.stamp.repository.VerificationAttemptRepository;
+import com.danyeogam.backend.title.application.TitleAwardService;
 import com.danyeogam.backend.touristspot.domain.SpotType;
 import com.danyeogam.backend.touristspot.domain.TouristSpot;
 import com.danyeogam.backend.touristspot.repository.TouristSpotRepository;
@@ -47,6 +49,7 @@ class StampVerificationServiceTest {
     private TouristSpotRepository spotRepository;
     private VerificationAttemptRepository attemptRepository;
     private VisitRepository visitRepository;
+    private TitleAwardService titleAwardService;
     private StampVerificationService service;
     private TouristSpot spot;
 
@@ -56,13 +59,15 @@ class StampVerificationServiceTest {
         spotRepository = mock(TouristSpotRepository.class);
         attemptRepository = mock(VerificationAttemptRepository.class);
         visitRepository = mock(VisitRepository.class);
+        titleAwardService = mock(TitleAwardService.class);
         StampVerificationProperties properties = new StampVerificationProperties();
         properties.setDefaultRadiusMeters(100);
         properties.setMaxAccuracyMeters(new BigDecimal("50"));
         properties.setMaxLocationAge(java.time.Duration.ofMinutes(2));
         service = new StampVerificationService(
                 actorRepository, spotRepository, attemptRepository, visitRepository,
-                properties, new GeoDistanceCalculator(), Clock.fixed(NOW, ZoneOffset.UTC)
+                titleAwardService, properties, new GeoDistanceCalculator(),
+                Clock.fixed(NOW, ZoneOffset.UTC)
         );
         when(actorRepository.findActiveByIdForUpdate(42L)).thenReturn(Optional.of(Actor.anonymous()));
         when(attemptRepository.findByActorIdAndIdempotencyKey(42L, KEY)).thenReturn(Optional.empty());
@@ -74,6 +79,8 @@ class StampVerificationServiceTest {
         });
         when(visitRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(visitRepository.findByActorIdAndTouristSpotId(42L, 7L)).thenReturn(Optional.empty());
+        when(titleAwardService.evaluateAndAward(any(Long.class), any(Long.class), any(Instant.class)))
+                .thenReturn(List.of());
 
         spot = mock(TouristSpot.class);
         when(spot.getId()).thenReturn(7L);
@@ -87,11 +94,14 @@ class StampVerificationServiceTest {
 
     @Test
     void savesAttemptAndVisitAtomicallyInsideRadius() {
+        when(titleAwardService.evaluateAndAward(42L, 9L, NOW)).thenReturn(List.of(3L, 4L));
+
         var result = service.verify(42L, KEY, request("37.0", "127.0", "5", NOW));
 
         assertThat(result.status()).isEqualTo("VERIFIED_NEW");
         assertThat(result.visitState()).isEqualTo("VISITED");
         assertThat(result.collectionChanged()).isTrue();
+        assertThat(result.newTitleIds()).containsExactly(3L, 4L);
         verify(attemptRepository).countByActorIdAndCreatedAtBetween(
                 42L, NOW.minusSeconds(60), NOW
         );
@@ -123,8 +133,10 @@ class StampVerificationServiceTest {
                 42L, 7L, KEY, VerificationResult.OUT_OF_RANGE,
                 new BigDecimal("120.00"), new BigDecimal("5.00"), NOW, NOW
         );
+        ReflectionTestUtils.setField(stored, "id", 12L);
         when(attemptRepository.findByActorIdAndIdempotencyKey(42L, KEY))
                 .thenReturn(Optional.of(stored));
+        when(titleAwardService.findAwardedByAttempt(42L, 12L)).thenReturn(List.of());
 
         assertThat(service.verify(42L, KEY, request("37.0", "127.0", "5", NOW)).status())
                 .isEqualTo("OUT_OF_RANGE");
@@ -136,6 +148,26 @@ class StampVerificationServiceTest {
                 .isInstanceOfSatisfying(BusinessException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.IDEMPOTENCY_KEY_CONFLICT));
+    }
+
+    @Test
+    void returnsTheSameTitleIdsForIdempotentReplay() {
+        VerificationAttempt stored = new VerificationAttempt(
+                42L, 7L, KEY, VerificationResult.VERIFIED_NEW,
+                BigDecimal.ZERO, new BigDecimal("5.00"), NOW, NOW
+        );
+        ReflectionTestUtils.setField(stored, "id", 12L);
+        Visit visit = new Visit(42L, 7L, 12L, NOW, BigDecimal.ZERO);
+        when(attemptRepository.findByActorIdAndIdempotencyKey(42L, KEY))
+                .thenReturn(Optional.of(stored));
+        when(visitRepository.findByActorIdAndTouristSpotId(42L, 7L))
+                .thenReturn(Optional.of(visit));
+        when(titleAwardService.findAwardedByAttempt(42L, 12L))
+                .thenReturn(List.of(3L, 4L));
+
+        var result = service.verify(42L, KEY, request("37.0", "127.0", "5", NOW));
+
+        assertThat(result.newTitleIds()).containsExactly(3L, 4L);
     }
 
     @Test

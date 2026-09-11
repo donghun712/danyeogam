@@ -21,6 +21,7 @@ import com.danyeogam.backend.stamp.config.StampVerificationProperties;
 import com.danyeogam.backend.stamp.domain.VerificationAttempt;
 import com.danyeogam.backend.stamp.domain.VerificationResult;
 import com.danyeogam.backend.stamp.repository.VerificationAttemptRepository;
+import com.danyeogam.backend.title.application.TitleAwardService;
 import com.danyeogam.backend.touristspot.domain.SpotType;
 import com.danyeogam.backend.touristspot.domain.TouristSpot;
 import com.danyeogam.backend.touristspot.repository.TouristSpotRepository;
@@ -42,6 +43,7 @@ public class StampVerificationService {
     private final TouristSpotRepository spotRepository;
     private final VerificationAttemptRepository attemptRepository;
     private final VisitRepository visitRepository;
+    private final TitleAwardService titleAwardService;
     private final StampVerificationProperties properties;
     private final GeoDistanceCalculator distanceCalculator;
     private final Clock clock;
@@ -51,6 +53,7 @@ public class StampVerificationService {
             TouristSpotRepository spotRepository,
             VerificationAttemptRepository attemptRepository,
             VisitRepository visitRepository,
+            TitleAwardService titleAwardService,
             StampVerificationProperties properties,
             GeoDistanceCalculator distanceCalculator,
             Clock clock
@@ -59,6 +62,7 @@ public class StampVerificationService {
         this.spotRepository = spotRepository;
         this.attemptRepository = attemptRepository;
         this.visitRepository = visitRepository;
+        this.titleAwardService = titleAwardService;
         this.properties = properties;
         this.distanceCalculator = distanceCalculator;
         this.clock = clock;
@@ -155,8 +159,11 @@ public class StampVerificationService {
         Visit visit = visitRepository.saveAndFlush(new Visit(
                 actorId, spot.getId(), attempt.getId(), now, distance
         ));
+        List<Long> newTitleIds = titleAwardService.evaluateAndAward(
+                actorId, attempt.getId(), now
+        );
         return response(VerificationResult.VERIFIED_NEW, spot.getId(), distance,
-                visit.getVerifiedAt(), true, true);
+                visit.getVerifiedAt(), true, true, newTitleIds);
     }
 
     private static long secondsUntil(Instant now, Instant expiresAt) {
@@ -174,14 +181,21 @@ public class StampVerificationService {
             Instant measuredAt,
             Visit knownVisit
     ) {
-        saveAttempt(actorId, spotId, key, result, distance, accuracy, measuredAt);
+        VerificationAttempt attempt = saveAttempt(
+                actorId, spotId, key, result, distance, accuracy, measuredAt
+        );
         Visit visit = knownVisit != null ? knownVisit
                 : visitRepository.findByActorIdAndTouristSpotId(actorId, spotId).orElse(null);
+        List<Long> newTitleIds = result == VerificationResult.VERIFIED_ALREADY_ACQUIRED
+                && visit != null
+                ? titleAwardService.evaluateAndAward(actorId, attempt.getId(), clock.instant())
+                : List.of();
         return response(result, spotId, distance,
                 result == VerificationResult.VERIFIED_ALREADY_ACQUIRED && visit != null
                         ? visit.getVerifiedAt() : null,
                 visit != null,
-                false);
+                false,
+                newTitleIds);
     }
 
     private VerificationAttempt saveAttempt(
@@ -209,8 +223,12 @@ public class StampVerificationService {
         Instant verifiedAt = changed || attempt.getResult() == VerificationResult.VERIFIED_ALREADY_ACQUIRED
                 ? visit == null ? null : visit.getVerifiedAt()
                 : null;
+        List<Long> newTitleIds = changed
+                || attempt.getResult() == VerificationResult.VERIFIED_ALREADY_ACQUIRED
+                ? titleAwardService.findAwardedByAttempt(actorId, attempt.getId())
+                : List.of();
         return response(attempt.getResult(), attempt.getTouristSpotId(),
-                attempt.getDistanceMeters(), verifiedAt, visit != null, changed);
+                attempt.getDistanceMeters(), verifiedAt, visit != null, changed, newTitleIds);
     }
 
     private static StampVerificationResponse response(
@@ -219,13 +237,14 @@ public class StampVerificationService {
             BigDecimal distance,
             Instant verifiedAt,
             boolean visited,
-            boolean collectionChanged
+            boolean collectionChanged,
+            List<Long> newTitleIds
     ) {
         return new StampVerificationResponse(
                 result.name(), spotId, distance, verifiedAt,
                 visited ? "VISITED" : "NOT_VISITED",
                 collectionChanged,
-                List.of()
+                newTitleIds
         );
     }
 

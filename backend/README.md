@@ -39,6 +39,7 @@ Spring Boot 기반 다녀감 백엔드 프로젝트다.
 - 활성 스탬프 대상 기준 지역 진행률 집계
 - 스탬프 대상 0개 지역의 안전한 0% 처리
 - Swagger UI와 JSON/YAML OpenAPI 계약
+- 스탬프 방문 기록 기반 칭호 판정·부여와 내 칭호 목록 조회
 - 2KB 이상 JSON 응답의 서버 압축
 - API 보안 헤더, 오류 응답 `no-store`, 익명 세션 발급·API IP 요청 제한
 - 운영 Swagger 비활성화와 `prod` 프로필 보안 설정 검증
@@ -217,7 +218,7 @@ $env:RUN_LIVE_KAKAO_API_TESTS='true'
 - 지역 284건, 활성 스탬프 대상 3,885건, 대표 원본·썸네일 보유 3,629건 확인
 - TourAPI 좌표 3,884건, 카카오 주소 보정 좌표 1건 확인
 - 기존 비선정 11,450건은 삭제하지 않고 비활성화하고, 활성 대상만 담은 독립 복원용 데이터 덤프를 생성
-- `/v3/api-docs`, `/v3/api-docs.yaml`, `/swagger-ui.html` 응답 및 11개 API 경로 검증
+- `/v3/api-docs`, `/v3/api-docs.yaml`, `/swagger-ui.html` 응답 및 12개 API 경로 검증
 - 동시 요청 20개 부하, GPS 멱등 동시성, 전국 16개 광역 도감 합계와 gzip 응답 압축 검증
 
 전국 적재의 제외 사유와 범위는 `docs/tourapi-full-load-report.md`, Swagger 사용법은 `docs/openapi-guide.md`, 프론트 연결 전 최종 검증은 `docs/pre-frontend-validation-report.md`에 정리했다.

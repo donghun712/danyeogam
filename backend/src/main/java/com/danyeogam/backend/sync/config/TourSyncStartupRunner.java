@@ -9,9 +9,11 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 
 @Component
 @Profile("!test")
+@Order(0)
 class TourSyncStartupRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(TourSyncStartupRunner.class);

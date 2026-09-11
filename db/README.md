@@ -20,7 +20,7 @@
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
-빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1·V2·V3·V4 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
+빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1~V6 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
 
 ```powershell
 mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE C:/관광데이터/db/danyeogam_tour_seed.sql"
@@ -71,6 +71,8 @@ SHOW INDEX FROM tourist_spot;
 - `visit(actor_id, tourist_spot_id)` 유니크 제약으로 장소당 최초 스탬프 한 번만 저장한다.
 - `tourist_spot_favorite(actor_id, tourist_spot_id)` 유니크 제약으로 중복 즐겨찾기를 막는다.
 - `verification_attempt(actor_id, idempotency_key)` 유니크 제약으로 재전송을 안전하게 처리한다.
+- 칭호 조건은 `title_definition`에 저장하고 획득 결과는 `actor_title(actor_id, title_definition_id)` 유니크 제약으로 한 번만 부여한다.
+- 문화 수집가는 실제 TourAPI 구조에 맞춰 `classification_level3`의 `VE070100`, `VE070200`, `VE070600`을 합산한다.
 - 인증 요청의 정확한 GPS 좌표는 테이블에 저장하지 않는다. 계산된 거리, 기기 정확도, 결과, 측정 시각만 기록한다.
 - 이동 경로 테이블은 개인정보 정책이 확정되지 않아 생성하지 않았다.
 - GPS 반경, 허용 정확도, 측정 유효시간은 아직 TBD이므로 DB 기본값으로 고정하지 않는다.
@@ -86,4 +88,4 @@ SHOW INDEX FROM tourist_spot;
 
 키 원문은 SQL 파일이나 DB 일반 테이블에 저장하지 않고 배포 환경의 Secret으로 주입한다.
 
-백엔드에서는 `V1__init_schema.sql`, `V2__add_tour_classification.sql`, `V3__add_operating_facility_info.sql`, `V4__add_tourist_spot_favorite.sql`을 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.
+백엔드에서는 `V1__init_schema.sql`부터 `V6__update_title_schema_metadata.sql`까지 순서대로 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.

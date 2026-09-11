@@ -58,7 +58,7 @@ Cookie: dg_session=<HttpOnly 쿠키>
 | `LOCATION_STALE` | 오래됐거나 미래 시각인 측정 | 새 위치를 요청 |
 | `STAMP_DISABLED` | 인증 대상이 아니거나 중단됨 | 인증 버튼 비활성화 및 상세 갱신 |
 
-`distanceMeters`는 거리 계산 전 실패에서는 `null`일 수 있고, `verifiedAt`은 성공 또는 이미 획득 상태에서만 존재한다. 칭호 기능 전까지 `newTitleIds`는 빈 배열이다.
+`distanceMeters`는 거리 계산 전 실패에서는 `null`일 수 있고, `verifiedAt`은 성공 또는 이미 획득 상태에서만 존재한다. `newTitleIds`는 이번 인증으로 새로 획득한 칭호 정의 ID이며, 동일한 `Idempotency-Key` 재호출에서도 최초 응답과 같은 ID 목록을 반환한다. 새 칭호가 없으면 빈 배열이다.
 
 ## HTTP 오류
 

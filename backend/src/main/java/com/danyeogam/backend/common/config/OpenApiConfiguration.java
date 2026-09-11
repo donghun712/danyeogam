@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "다녀감 Backend API",
                 version = "v1",
-                description = "전국 관광지 탐색, 주변 주차장, 익명 세션, GPS 스탬프와 지역 도감 API",
+                description = "전국 관광지 탐색, 주변 주차장, 익명 세션, GPS 스탬프, 지역 도감과 칭호 API",
                 contact = @Contact(name = "다녀감 백엔드 팀"),
                 license = @License(name = "Private competition project")
         )
