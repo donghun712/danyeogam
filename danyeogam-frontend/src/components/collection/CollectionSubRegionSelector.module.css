@@ -17,6 +17,17 @@
   padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
   min-height: 36px;
   cursor: pointer;
+  /* 시군구 이름 길이(예: "전체" vs "고양시 일산동구")에 따라 박스가 흔들리지 않도록
+     고정 폭을 준다. 넘치는 글자는 말줄임. */
+  width: 128px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .select:focus-visible {

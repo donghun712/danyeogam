@@ -100,13 +100,15 @@ export function CollectionPage() {
               selectedCode={selectedRegionCode}
               onChange={setPreferredRegionCode}
             />
-            {hasSubRegions && (
-              <CollectionSubRegionSelector
-                regions={subSummary.regions}
-                selectedCode={selectedSubRegionCode}
-                onChange={setPreferredSubRegionCode}
-              />
-            )}
+            {/* 하위 시군구가 없는 광역(세종특별자치시 등)이거나 아직 불러오는 중이어도
+                이 자리 자체는 계속 유지하고 비활성화만 한다 — 나타났다 사라졌다 하면서
+                레이아웃이 흔들리는 걸 막기 위함. */}
+            <CollectionSubRegionSelector
+              regions={hasSubRegions ? subSummary.regions : []}
+              selectedCode={selectedSubRegionCode}
+              onChange={setPreferredSubRegionCode}
+              disabled={!hasSubRegions}
+            />
           </div>
 
           {effectiveSummary && <CollectionProgress summary={effectiveSummary} />}

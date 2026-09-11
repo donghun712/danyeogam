@@ -19,6 +19,12 @@
   padding: var(--space-md) var(--space-2xl) var(--space-md) var(--space-lg);
   min-height: 44px; /* 모바일 터치 영역 확보 */
   cursor: pointer;
+  /* 지역명 길이(예: "경기도" vs "전남광주통합특별시")에 따라 박스 너비가 흔들리지 않도록
+     고정 폭을 준다 — 가장 긴 실제 지역명 기준으로 여유 있게 잡음. 넘치는 글자는 말줄임. */
+  width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .select:focus-visible {
