@@ -2,6 +2,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DELETE FROM actor_title;
 DELETE FROM title_definition;
+DELETE FROM tourist_spot_favorite;
 DELETE FROM visit;
 DELETE FROM verification_attempt;
 DELETE FROM anonymous_session;
