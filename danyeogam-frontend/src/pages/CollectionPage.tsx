@@ -3,6 +3,7 @@ import { CollectionRegionSelector } from "@/components/collection/CollectionRegi
 import { CollectionSubRegionSelector } from "@/components/collection/CollectionSubRegionSelector";
 import { CollectionProgress } from "@/components/collection/CollectionProgress";
 import { CollectionCard } from "@/components/collection/CollectionCard";
+import { TitleSection } from "@/components/title/TitleSection";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Skeleton } from "@/components/common/Skeleton";
@@ -22,9 +23,10 @@ import styles from "./CollectionPage.module.css";
  * 그렇다 — 세종특별자치시처럼 하위 지역이 없는 경우는 자동으로 숨김) 2단계로 더 좁혀볼 수
  * 있다. `GET /me/collection/summary?parentRegionCode=...`를 재사용한다(백엔드 문서 참고).
  *
- * 칭호(Title)는 백엔드 API가 아직 없어 이 화면에서 다루지 않는다.
- * TODO: GET /me/titles가 추가되면 이 페이지의 CollectionProgress 아래에
- * TitleSection(가칭)을 새로 만들어 연결한다 — 임의의 칭호 데이터/조건을 만들지 않는다.
+ * 칭호(Title)는 화면 맨 아래 TitleSection으로 연결한다. GET /me/titles는 광역 선택과
+ * 무관한 전역 데이터라, 도감 지역 요약(summary)의 로딩/에러 상태와 분리해서 독립적으로
+ * 렌더링한다 — 지역 요약이 실패해도 칭호 섹션은 별개로 정상 표시될 수 있어야 한다
+ * (Partial Error 원칙, 9장).
  */
 export function CollectionPage() {
   const summary = useCollectionSummary();
@@ -144,6 +146,8 @@ export function CollectionPage() {
           )}
         </>
       )}
+
+      <TitleSection />
     </div>
   );
 }

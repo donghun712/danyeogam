@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FullPageLayout } from "@/components/common/FullPageLayout";
 import { Button } from "@/components/common/Button";
+import { Badge } from "@/components/common/Badge";
 import { StampSeal } from "@/components/stamp/StampSeal";
 import { StampSealSparkles } from "@/components/stamp/StampSealSparkles";
 import { StampRadar } from "@/components/stamp/StampRadar";
 import { StampMeasurementInfo } from "@/components/stamp/StampMeasurementInfo";
+import { AppIcon } from "@/constants/icons";
 import { useStampVerification } from "@/hooks/useStampVerification";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
 import { useCollectionSummary } from "@/hooks/useCollectionSummary";
+import { useTitles } from "@/hooks/useTitles";
 import { ROUTES } from "@/constants/routes";
 import styles from "./StampVerificationPage.module.css";
 
@@ -96,6 +99,14 @@ export function StampVerificationPage() {
   const matchedRegionProgress = detail
     ? (summaryRegions.find((region) => region.code === detail.regionCode) ?? null)
     : null;
+  // 새로 획득한 칭호 알림용 — newTitleIds는 ID만 내려주므로 이름/설명은 GET /me/titles를
+  // 다시 불러와 매칭한다(useStampVerification이 인증 성공 시 emitAttractionVisited를
+  // 호출하면 useTitles가 그 이벤트를 구독해 자동으로 재조회한다).
+  const { titles } = useTitles();
+  const newlyEarnedTitles =
+    result?.status === "VERIFIED_NEW" && result.newTitleIds.length > 0
+      ? titles.filter((title) => result.newTitleIds.includes(title.id))
+      : [];
 
   if (spotId === null) {
     return (
@@ -181,6 +192,19 @@ export function StampVerificationPage() {
                 {matchedRegionProgress.name} {matchedRegionProgress.visitedCount} /{" "}
                 {matchedRegionProgress.totalCount}
               </p>
+            )}
+            {newlyEarnedTitles.length > 0 && (
+              <div className={styles.newTitles}>
+                <p className="text-caption">새 칭호 획득!</p>
+                <div className={styles.newTitleBadges}>
+                  {newlyEarnedTitles.map((title) => (
+                    <Badge key={title.id} tone="brand">
+                      <AppIcon.title size={14} strokeWidth={2} aria-hidden="true" />
+                      {title.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
             <div className={styles.actions}>
               <Button onClick={() => navigate(ROUTES.collection)}>

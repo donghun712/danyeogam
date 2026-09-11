@@ -225,7 +225,8 @@ export interface StampVerificationResult {
   verifiedAt: string | null;
   visitState: VisitState;
   collectionChanged: boolean;
-  newTitleIds: number[]; // 칭호 API 미구현 상태이므로 항상 빈 배열로 취급
+  /** 이번 인증으로 새로 부여된 title_definition.id 목록. GET /me/titles 재조회 후 매칭한다. */
+  newTitleIds: number[];
 }
 
 // ── 도감 (P1) ─────────────────────────────────────────
@@ -255,6 +256,30 @@ export interface CollectionRegionSummary {
 
 export interface CollectionSummary {
   regions: CollectionRegionSummary[];
+}
+
+// ── 칭호 (GET /api/v1/me/titles) ─────────────────────────
+
+/**
+ * VISITS: 서로 다른 관광지 방문 수, REGIONS: 서로 다른 광역/시군구 방문 수,
+ * PERCENT: 해당 광역지역의 현재 도감 진행률. currentValue/targetValue의 단위를 결정한다.
+ */
+export type TitleProgressUnit = "VISITS" | "REGIONS" | "PERCENT";
+
+export interface Title {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  earned: boolean;
+  awardedAt: string | null;
+  currentValue: number;
+  targetValue: number;
+  progressUnit: TitleProgressUnit;
+}
+
+export interface TitleList {
+  titles: Title[];
 }
 
 // ── 익명 세션 (POST /api/v1/sessions/anonymous) ──────────

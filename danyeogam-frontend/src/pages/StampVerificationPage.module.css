@@ -21,3 +21,17 @@
   gap: var(--space-sm);
   width: 100%;
 }
+
+.newTitles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.newTitleBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}

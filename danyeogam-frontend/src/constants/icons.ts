@@ -1,10 +1,12 @@
 import {
   ArrowLeft,
+  Award,
   Baby,
   BookOpen,
   Clock,
   ChevronDown,
   LocateFixed,
+  Lock,
   Map,
   MapPin,
   Navigation,
@@ -35,4 +37,6 @@ export const AppIcon = {
   hours: Clock,
   strollerRental: Baby,
   petAllowed: PawPrint,
+  title: Award,
+  titleLocked: Lock,
 } as const;
