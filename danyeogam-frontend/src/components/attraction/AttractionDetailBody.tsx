@@ -59,31 +59,38 @@ export function AttractionDetailBody({
       )}
 
       {detail.overview && (
-        <p className={`text-body ${styles.overview}`}>{detail.overview}</p>
+        <>
+          <p className={`text-h3 ${styles.sectionTitle}`}>소개</p>
+          <p className={`text-body ${styles.overview}`}>{detail.overview}</p>
+        </>
       )}
 
       {(detail.telephone || homepageUrl || detail.operatingInfo?.hours || detail.operatingInfo?.closedDays) && (
         <dl className={styles.metaList}>
           {detail.operatingInfo?.hours && (
             <div className={styles.metaRow}>
+              <AppIcon.hours size={16} strokeWidth={2} className={styles.metaIcon} aria-hidden="true" />
               <dt className="text-caption">운영시간</dt>
               <dd className="text-body">{detail.operatingInfo.hours}</dd>
             </div>
           )}
           {detail.operatingInfo?.closedDays && (
             <div className={styles.metaRow}>
+              <AppIcon.closedDays size={16} strokeWidth={2} className={styles.metaIcon} aria-hidden="true" />
               <dt className="text-caption">휴무일</dt>
               <dd className="text-body">{detail.operatingInfo.closedDays}</dd>
             </div>
           )}
           {detail.telephone && (
             <div className={styles.metaRow}>
+              <AppIcon.phone size={16} strokeWidth={2} className={styles.metaIcon} aria-hidden="true" />
               <dt className="text-caption">전화</dt>
               <dd className="text-body">{detail.telephone}</dd>
             </div>
           )}
           {homepageUrl && (
             <div className={styles.metaRow}>
+              <AppIcon.homepage size={16} strokeWidth={2} className={styles.metaIcon} aria-hidden="true" />
               <dt className="text-caption">홈페이지</dt>
               <dd className="text-body">
                 <a
@@ -101,24 +108,27 @@ export function AttractionDetailBody({
       )}
 
       {detail.facilityInfo && (
-        <div className={styles.facilityRow}>
-          <FacilityBadge
-            icon={AppIcon.parking}
-            label="주차"
-            status={detail.facilityInfo.parking}
-          />
-          <FacilityBadge
-            icon={AppIcon.strollerRental}
-            label="유모차"
-            status={detail.facilityInfo.strollerRental}
-          />
-          <FacilityBadge
-            icon={AppIcon.petAllowed}
-            label="반려동물"
-            status={detail.facilityInfo.petAllowed}
-          />
-          {/* 휠체어(무장애) 정보는 백엔드 응답에 없어 표시하지 않는다 — 임의로 만들지 않는다. */}
-        </div>
+        <>
+          <p className={`text-h3 ${styles.sectionTitle}`}>시설정보</p>
+          <div className={styles.facilityRow}>
+            <FacilityBadge
+              icon={AppIcon.parking}
+              label="주차"
+              status={detail.facilityInfo.parking}
+            />
+            <FacilityBadge
+              icon={AppIcon.strollerRental}
+              label="유모차"
+              status={detail.facilityInfo.strollerRental}
+            />
+            <FacilityBadge
+              icon={AppIcon.petAllowed}
+              label="반려동물"
+              status={detail.facilityInfo.petAllowed}
+            />
+            {/* 휠체어(무장애) 정보는 백엔드 응답에 없어 표시하지 않는다 — 임의로 만들지 않는다. */}
+          </div>
+        </>
       )}
       {detail.facilityInfo?.parkingFeeNote && (
         <p className="text-caption">주차 요금: {detail.facilityInfo.parkingFeeNote}</p>

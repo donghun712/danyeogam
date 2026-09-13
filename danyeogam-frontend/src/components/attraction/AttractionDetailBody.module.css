@@ -35,6 +35,11 @@
   color: var(--color-ink);
 }
 
+.sectionTitle {
+  margin: 0;
+  color: var(--color-ink);
+}
+
 .metaList {
   display: flex;
   flex-direction: column;
@@ -44,7 +49,14 @@
 
 .metaRow {
   display: flex;
+  align-items: baseline;
   gap: var(--space-sm);
+}
+
+.metaIcon {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--color-disabled);
 }
 
 .metaRow dt {

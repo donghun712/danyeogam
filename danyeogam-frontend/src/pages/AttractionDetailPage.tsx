@@ -42,6 +42,7 @@ export function AttractionDetailPage() {
   return (
     <FullPageLayout
       title={detail?.name ?? "관광지 상세"}
+      hideTitle={Boolean(detail)}
       headerActions={
         detail && (
           <>
