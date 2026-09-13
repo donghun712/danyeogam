@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { TabLayout } from "@/components/common/TabLayout";
 import { MapPage } from "@/pages/MapPage";
 import { CollectionPage } from "@/pages/CollectionPage";
+import { TitlePage } from "@/pages/TitlePage";
 import { AttractionDetailPage } from "@/pages/AttractionDetailPage";
 import { ParkingListPage } from "@/pages/ParkingListPage";
 import { StampVerificationPage } from "@/pages/StampVerificationPage";
@@ -23,6 +24,7 @@ export function App() {
       <Route element={<TabLayout />}>
         <Route path="/" element={<MapPage />} />
         <Route path="/collection" element={<CollectionPage />} />
+        <Route path="/titles" element={<TitlePage />} />
       </Route>
 
       {/* 뒤로가기 상단바를 쓰는 풀페이지 화면 (하단 탭 없음) */}

@@ -1,0 +1,5 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl) var(--space-screen-padding-x) var(--space-3xl);
+}
