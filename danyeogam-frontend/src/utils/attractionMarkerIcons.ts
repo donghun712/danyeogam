@@ -5,10 +5,11 @@ import { getCssVar } from "./cssVar";
  * "일반 관광지"=옅은 원형 테두리)에 맞춰 두 형태를 구분한다:
  * - 스탬프 대상: 지도 핀(pin) 모양 + Heritage Brown 채움 + 중앙 아이보리 점
  * - 일반 관광지: 작은 테두리 원(채움 없음) — 상대적으로 덜 강조되는 형태
- * - 방문 완료: 기존 마커에 완료 상태 표시 추가 — 단, "방문 완료 마커의 최종 UI는 TBD"라고
- *   문서에 명시되어 있어(11장, 개발 전 5가지 결정 항목 중 하나) 최종 디자인이 아니다.
- *   여기서는 우선 색상을 Success(Sage)로 바꿔 구분하는 임시안으로 구현하고,
- *   실제 완료 마커 디자인이 정해지면 이 파일만 고치면 된다.
+ * - 방문 완료: 기존 마커에 완료 상태 표시 추가. 색상(Success/Sage)뿐 아니라 도감 카드에서
+ *   이미 쓰고 있는 "✓ 방문완료" 체크마크를 중앙에 그려서 클러스터 안에서도 한눈에
+ *   구분되게 했다. 다만 "방문 완료 마커의 최종 UI는 TBD"라고 디자인 문서에 명시돼 있던
+ *   항목이라(11장, 개발 전 5가지 결정 항목 중 하나) 팀이 다른 디자인을 원하면 이 파일만
+ *   고치면 된다.
  *
  * kakao.maps.MarkerClusterer는 kakao.maps.Marker(+ MarkerImage) 인스턴스를 요구하므로
  * CustomOverlay 대신 SVG data URI 기반 MarkerImage를 사용한다.
@@ -18,8 +19,20 @@ const PIN_WIDTH = 28;
 const PIN_HEIGHT = 36;
 const DOT_SIZE = 18;
 
-/** 지도 핀(teardrop) 모양 — 스탬프 대상 관광지용. 끝부분(하단 뾰족한 점)이 실제 좌표를 가리킨다. */
-function buildPinMarkerSvg(fillColor: string, accentColor: string): string {
+/**
+ * 지도 핀(teardrop) 모양 — 스탬프 대상 관광지용. 끝부분(하단 뾰족한 점)이 실제 좌표를 가리킨다.
+ * 방문 완료(visited)면 중앙에 체크마크를 그린다 — 이미 도감 카드(CollectionCard)에서
+ * "✓ 방문완료"로 쓰고 있는 것과 같은 시각 언어를 재사용해서, 색만 다른 미방문/방문완료보다
+ * 클러스터 안에서도 한눈에 구분되게 한다.
+ */
+function buildPinMarkerSvg(
+  fillColor: string,
+  accentColor: string,
+  visited: boolean,
+): string {
+  const checkmark = visited
+    ? `<path d="M11 14.2 L13.3 16.5 L17.3 11.2" fill="none" stroke="${fillColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`
+    : "";
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${PIN_WIDTH}" height="${PIN_HEIGHT}" viewBox="0 0 ${PIN_WIDTH} ${PIN_HEIGHT}">
       <path
@@ -27,6 +40,7 @@ function buildPinMarkerSvg(fillColor: string, accentColor: string): string {
         fill="${fillColor}"
       />
       <circle cx="14" cy="14" r="5.5" fill="${accentColor}" />
+      ${checkmark}
     </svg>
   `.trim();
 }
@@ -70,7 +84,7 @@ export function createAttractionMarkerImage(
 
   const fillColor = variant === "stamp-visited" ? success : heritageBrown;
   return new kakao.maps.MarkerImage(
-    toDataUri(buildPinMarkerSvg(fillColor, ivory)),
+    toDataUri(buildPinMarkerSvg(fillColor, ivory, variant === "stamp-visited")),
     new kakao.maps.Size(PIN_WIDTH, PIN_HEIGHT),
     { offset: new kakao.maps.Point(PIN_WIDTH / 2, PIN_HEIGHT) }, // 핀 끝(뾰족한 부분)이 실제 좌표
   );

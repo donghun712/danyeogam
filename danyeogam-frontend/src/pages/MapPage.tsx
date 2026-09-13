@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { MapView } from "@/components/map/MapView";
+import { MapLegendSheet } from "@/components/map/MapLegendSheet";
 import { AttractionBottomSheet } from "@/components/attraction/AttractionBottomSheet";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -28,6 +29,7 @@ export function MapPage() {
   const [bounds, setBounds] = useState<MapBounds | null>(null);
   const { status, spots, errorCode, retry } = useAttractionsInBounds(bounds);
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
+  const [legendOpen, setLegendOpen] = useState(false);
 
   const latitude = currentLocation.position?.coords.latitude ?? null;
   const longitude = currentLocation.position?.coords.longitude ?? null;
@@ -85,6 +87,17 @@ export function MapPage() {
           />
         )}
 
+        {sdkStatus === "ready" && (
+          <button
+            type="button"
+            className={styles.legendButton}
+            onClick={() => setLegendOpen(true)}
+            aria-label="지도상태 — 마커 안내"
+          >
+            <AppIcon.mapLegend size={20} strokeWidth={2} aria-hidden="true" />
+          </button>
+        )}
+
         {sdkStatus === "ready" && status === "loading" && spots.length === 0 && (
           <div className={styles.overlayBottom}>
             <div className={styles.initialLoading}>
@@ -120,6 +133,8 @@ export function MapPage() {
         spotId={selectedSpotId}
         onClose={() => setSelectedSpotId(null)}
       />
+
+      <MapLegendSheet open={legendOpen} onClose={() => setLegendOpen(false)} />
     </div>
   );
 }

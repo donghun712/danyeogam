@@ -5,6 +5,7 @@ import {
   BookOpen,
   Clock,
   ChevronDown,
+  Info,
   LocateFixed,
   Lock,
   Map,
@@ -39,4 +40,5 @@ export const AppIcon = {
   petAllowed: PawPrint,
   title: Award,
   titleLocked: Lock,
+  mapLegend: Info,
 } as const;

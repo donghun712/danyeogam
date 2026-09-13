@@ -29,6 +29,26 @@
   overflow: hidden;
 }
 
+.legendButton {
+  position: absolute;
+  /* 상단 주소 표시줄과 겹치지 않도록 그 아래로 띄운다 — 주소줄 높이가 내용에 따라
+     약간 달라질 수 있어 여유 있게 잡은 값이다. */
+  top: 76px;
+  right: var(--space-lg);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-hanji-ivory);
+  border: none;
+  color: var(--color-heritage-brown);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
 .sdkLoading {
   display: flex;
   align-items: center;
