@@ -104,7 +104,9 @@ export function StampVerificationPage() {
   // 호출하면 useTitles가 그 이벤트를 구독해 자동으로 재조회한다).
   const { titles } = useTitles();
   const newlyEarnedTitles =
-    result?.status === "VERIFIED_NEW" && result.newTitleIds.length > 0
+    (result?.status === "VERIFIED_NEW" ||
+      result?.status === "VERIFIED_ALREADY_ACQUIRED") &&
+    result.newTitleIds.length > 0
       ? titles.filter((title) => result.newTitleIds.includes(title.id))
       : [];
 
@@ -221,6 +223,19 @@ export function StampVerificationPage() {
           <div className={styles.center}>
             <p className="text-h2">이미 방문한 관광지예요</p>
             <p className="text-body">이전에 스탬프를 획득했어요.</p>
+            {newlyEarnedTitles.length > 0 && (
+              <div className={styles.newTitles}>
+                <p className="text-caption">새 칭호 획득!</p>
+                <div className={styles.newTitleBadges}>
+                  {newlyEarnedTitles.map((title) => (
+                    <Badge key={title.id} tone="brand">
+                      <AppIcon.title size={14} strokeWidth={2} aria-hidden="true" />
+                      {title.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             <Button variant="secondary" onClick={() => navigate(ROUTES.collection)}>
               도감에서 확인하기
             </Button>
