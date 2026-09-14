@@ -55,21 +55,34 @@ export function MapPage() {
       </div>
 
       <div className={styles.mapArea}>
-        <div className={styles.addressBar}>
-          <AppIcon.location size={16} strokeWidth={2} aria-hidden="true" />
-          <span className="text-body">
-            {address.status === "success" && address.addressName
-              ? address.addressName
-              : currentLocation.status === "permission_denied"
-                ? "위치 권한이 필요해요"
-                : currentLocation.status === "unavailable"
-                  ? "위치를 사용할 수 없어요"
-                  : currentLocation.status === "timeout"
-                    ? "위치 확인 시간이 초과됐어요"
-                    : currentLocation.status === "success" && address.status === "error"
-                      ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
-                      : "현재 위치 확인 중..."}
-          </span>
+        <div className={styles.topControls}>
+          <div className={styles.addressBar}>
+            <AppIcon.location size={14} strokeWidth={2} aria-hidden="true" />
+            <span className={`text-caption ${styles.addressText}`}>
+              {address.status === "success" && address.addressName
+                ? address.addressName
+                : currentLocation.status === "permission_denied"
+                  ? "위치 권한이 필요해요"
+                  : currentLocation.status === "unavailable"
+                    ? "위치를 사용할 수 없어요"
+                    : currentLocation.status === "timeout"
+                      ? "위치 확인 시간이 초과됐어요"
+                      : currentLocation.status === "success" && address.status === "error"
+                        ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
+                        : "현재 위치 확인 중..."}
+            </span>
+          </div>
+
+          {sdkStatus === "ready" && (
+            <button
+              type="button"
+              className={styles.legendButton}
+              onClick={() => setLegendOpen(true)}
+              aria-label="지도상태 — 마커 안내"
+            >
+              <AppIcon.mapLegend size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         {sdkStatus === "error" && (
@@ -89,17 +102,6 @@ export function MapPage() {
             onBoundsChange={setBounds}
             onSelectSpot={setSelectedSpotId}
           />
-        )}
-
-        {sdkStatus === "ready" && (
-          <button
-            type="button"
-            className={styles.legendButton}
-            onClick={() => setLegendOpen(true)}
-            aria-label="지도상태 — 마커 안내"
-          >
-            <AppIcon.mapLegend size={20} strokeWidth={2} aria-hidden="true" />
-          </button>
         )}
 
         {sdkStatus === "ready" && status === "loading" && spots.length === 0 && (

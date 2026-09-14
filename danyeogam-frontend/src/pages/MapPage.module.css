@@ -10,28 +10,48 @@
 .brandHeader {
   display: flex;
   align-items: center;
-  padding: var(--space-md) var(--space-screen-padding-x);
+  padding: var(--space-lg) var(--space-screen-padding-x) var(--space-sm);
   background: var(--color-hanji-ivory);
 }
 
 .logo {
-  height: 28px;
+  height: 34px;
   width: auto;
 }
 
-.addressBar {
+/* 주소 표시줄 + 지도상태 버튼을 하나의 컨트롤 묶음으로 배치 — 서로 다른 컴포넌트처럼
+   따로 떠 보이지 않도록 같은 행에서 같은 높이/톤을 공유한다. */
+.topControls {
   position: absolute;
-  top: var(--space-lg);
+  top: var(--space-md);
   left: var(--space-screen-padding-x);
   right: var(--space-screen-padding-x);
   z-index: 20;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.addressBar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   background: var(--color-hanji-ivory);
   border-radius: var(--radius-input);
   box-shadow: var(--shadow-card);
-  padding: var(--space-md) var(--space-lg);
+  /* 상태 배너 수준으로 낮춘 높이/패딩 — 지도 시야를 과도하게 가리지 않게 */
+  padding: var(--space-sm) var(--space-md);
+  height: 36px;
+  box-sizing: border-box;
+  color: var(--color-secondary-text);
+}
+
+.addressText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mapArea {
@@ -42,12 +62,7 @@
 }
 
 .legendButton {
-  position: absolute;
-  /* 상단 주소 표시줄과 겹치지 않도록 그 아래로 띄운다 — 주소줄 높이가 내용에 따라
-     약간 달라질 수 있어 여유 있게 잡은 값이다. */
-  top: 76px;
-  right: var(--space-lg);
-  z-index: 20;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;

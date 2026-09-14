@@ -1,7 +1,8 @@
 .wrapper {
   position: relative;
-  width: 160px;
-  height: 160px;
+  /* 요청: 그래픽과 하단 텍스트/버튼이 한 덩어리로 느껴지도록 링 크기를 키움 */
+  width: 190px;
+  height: 190px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,11 +11,30 @@
 .ring {
   position: relative;
   z-index: 1;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  border: 3px solid var(--radar-color);
-  background: color-mix(in srgb, var(--radar-color) 10%, var(--color-hanji-ivory));
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 손그림 질감 이미지를 마스크로만 사용하고, 실제 색은 상태별 semantic 토큰으로 칠한다.
+   형태(질감)는 모든 상태에서 동일, 색상만 달라진다. */
+.ringTexture {
+  position: absolute;
+  inset: 0;
+  background-color: var(--radar-color);
+  -webkit-mask-image: url("/gps-radar-ring.png");
+  mask-image: url("/gps-radar-ring.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,32 +44,6 @@
 .distance {
   font-size: var(--font-size-h1);
   font-weight: var(--font-weight-h1);
-  color: var(--radar-color);
-}
-
-.imageRing {
-  position: relative;
-  z-index: 1;
-  width: 140px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ringImage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.imageContent {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--radar-color);
 }
 

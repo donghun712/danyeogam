@@ -21,6 +21,7 @@
 .badgeRow {
   display: flex;
   gap: var(--space-sm);
+  margin-top: var(--space-xs);
 }
 
 .address {
@@ -28,11 +29,15 @@
 }
 
 .partialNotice {
-  color: var(--color-warning);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-disabled);
 }
 
 .overview {
   color: var(--color-ink);
+  margin-top: var(--space-xs);
 }
 
 .sectionTitle {

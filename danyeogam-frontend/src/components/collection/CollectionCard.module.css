@@ -41,10 +41,14 @@
 }
 
 .footer {
-  padding: var(--space-sm);
+  padding: var(--space-md);
+  min-height: 52px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
+  /* 이미지/프레임 영역과 텍스트 영역의 경계를 살짝 더 명확히 구분 */
+  border-top: 1px solid var(--color-sand);
 }
 
 .visited {

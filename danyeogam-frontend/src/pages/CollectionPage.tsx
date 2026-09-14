@@ -51,13 +51,21 @@ export function CollectionPage() {
   }
 
   const subSummary = useCollectionSummary(selectedRegionCode);
+  // 백엔드 확인: 일부 시군구는 하위 구와 별도의 상위 코드로 DB에 존재하면서 실제 연결된
+  // 스탬프 대상은 0건인 경우가 있다(예: "전주시" 자체는 0건, "전주시 덕진구"/"완산구"에
+  // 실제 데이터가 있음 — 전국 18개 지역이 이런 케이스). 골라도 빈 화면만 나오므로
+  // totalCount가 0인 항목은 선택지에서 제외한다. DB 자체를 건드리는 게 아니라
+  // 화면에 표시할 가치가 없는 항목만 프론트에서 숨기는 것 — 백엔드 권장 방식 그대로.
+  const visibleSubRegions = subSummary.regions.filter(
+    (region) => region.totalCount > 0,
+  );
   // 백엔드 문서: "활성 하위 시군구가 없는 광역자치단체는 광역 자체를 단일 항목으로 반환" —
   // 그런 경우 굳이 2단계 선택기를 보여줄 필요가 없어서 항목이 2개 이상일 때만 노출한다.
   const hasSubRegions =
-    subSummary.status === "success" && subSummary.regions.length > 1;
+    subSummary.status === "success" && visibleSubRegions.length > 1;
   const selectedSubRegionCode =
     hasSubRegions &&
-    subSummary.regions.some((region) => region.code === preferredSubRegionCode)
+    visibleSubRegions.some((region) => region.code === preferredSubRegionCode)
       ? preferredSubRegionCode
       : null;
 
@@ -104,7 +112,7 @@ export function CollectionPage() {
                 이 자리 자체는 계속 유지하고 비활성화만 한다 — 나타났다 사라졌다 하면서
                 레이아웃이 흔들리는 걸 막기 위함. */}
             <CollectionSubRegionSelector
-              regions={hasSubRegions ? subSummary.regions : []}
+              regions={hasSubRegions ? visibleSubRegions : []}
               selectedCode={selectedSubRegionCode}
               onChange={setPreferredSubRegionCode}
               disabled={!hasSubRegions}

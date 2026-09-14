@@ -2,7 +2,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* 완전 중앙 대신 살짝 위쪽에 고정 — 화면이 길어도 하단이 허전해 보이지 않도록 */
+  justify-content: flex-start;
+  padding-top: 12vh;
   min-height: 60vh;
 }
 
@@ -10,7 +12,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
+  /* 그래픽 → 설명 → 버튼이 하나의 인증 UI 그룹으로 보이도록 간격을 좁힘 */
+  gap: var(--space-sm);
   text-align: center;
   max-width: 320px;
 }
@@ -34,4 +37,18 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-xs);
+}
+
+.regionProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.regionName {
+  color: var(--color-secondary-text);
+  /* 긴 지역명(예: 전남광주통합특별시)도 줄바꿈으로 자연스럽게 처리 — 잘리지 않음 */
+  max-width: 260px;
+  white-space: normal;
 }

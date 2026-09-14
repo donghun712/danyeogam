@@ -22,14 +22,17 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-sm);
+  /* 카드 개수가 많아 스크롤이 기니, 촘촘해 보이지 않게 세로 간격을 넉넉히 */
+  gap: var(--space-lg) var(--space-sm);
 }
 
 .tile {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  min-height: 68px;
+  box-sizing: border-box;
   border-radius: var(--radius-card);
   min-width: 0; /* 자식 텍스트 말줄임이 grid item 안에서 동작하게 함 */
   background-size: 100% 100%;
@@ -42,7 +45,13 @@
 }
 
 .locked {
-  background-image: url("/title-card-locked.png");
+  /* 장식 자체는 유지하되, 살짝 옅은 막을 얹어 텍스트와의 대비를 확보한다 — 카드가
+     "읽을 수 없는" 수준으로 어두워지지 않게 10~15% 정도만. */
+  background-image: linear-gradient(
+      color-mix(in srgb, var(--color-hanji-ivory) 12%, transparent),
+      color-mix(in srgb, var(--color-hanji-ivory) 12%, transparent)
+    ),
+    url("/title-card-locked.png");
   color: var(--color-disabled);
 }
 
@@ -54,19 +63,25 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .name {
-  color: inherit;
+  /* 잠금 상태라도 칭호명 자체는 읽기 쉬운 톤을 쓴다 — 잠금 느낌은 아이콘/장식으로 충분히 전달됨 */
+  color: var(--color-secondary-text);
   font-weight: 600;
+  font-size: var(--font-size-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.earned .name {
+  color: var(--color-heritage-brown);
+}
+
 .progress {
   font-size: var(--font-size-caption);
-  color: inherit;
-  opacity: 0.8;
+  color: var(--color-secondary-text);
+  opacity: 0.9;
 }

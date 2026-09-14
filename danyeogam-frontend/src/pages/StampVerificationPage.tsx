@@ -185,10 +185,14 @@ export function StampVerificationPage() {
             {detail && <StampSeal name={detail.name} />}
             <p className="text-body">방문 인증을 완료했어요!</p>
             {matchedRegionProgress && (
-              <p className="text-h3">
-                {matchedRegionProgress.name} {matchedRegionProgress.visitedCount} /{" "}
-                {matchedRegionProgress.totalCount}
-              </p>
+              <div className={styles.regionProgress}>
+                <p className={`text-caption ${styles.regionName}`}>
+                  {matchedRegionProgress.name}
+                </p>
+                <p className="text-h2">
+                  {matchedRegionProgress.visitedCount} / {matchedRegionProgress.totalCount}
+                </p>
+              </div>
             )}
             {newlyEarnedTitles.length > 0 && (
               <div className={styles.newTitles}>

@@ -52,10 +52,11 @@ export function AttractionDetailBody({
       )}
 
       {detail.dataQuality === "PARTIAL" && (
-        // 디자인 시스템 15장 Partial 상태 문구
-        <p className={`text-caption ${styles.partialNotice}`}>
-          ⚠ 일부 관광정보를 불러오지 못했습니다.
-        </p>
+        // 디자인 시스템 15장 Partial 상태 문구 — 오류가 아니라 정보 안내 수준으로 가볍게
+        <div className={styles.partialNotice}>
+          <AppIcon.mapLegend size={13} strokeWidth={2} aria-hidden="true" />
+          <span className="text-caption">일부 관광정보를 불러오지 못했습니다.</span>
+        </div>
       )}
 
       {detail.overview && (

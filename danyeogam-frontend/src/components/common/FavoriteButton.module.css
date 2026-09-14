@@ -17,7 +17,15 @@
 .withLabel {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-badge);
-  background: var(--color-sand);
+  /* Badge(상태 라벨)와 형태를 다르게 해서 "상태 액션"임을 구분한다 —
+     채워진 배지가 아니라 테두리만 있는 칩, 눌렀을 때만 채워진다. */
+  border: 1px solid var(--color-sand);
+  background: var(--color-hanji-ivory);
+}
+
+.withLabel.active {
+  border-color: var(--color-heritage-brown);
+  background: color-mix(in srgb, var(--color-heritage-brown) 10%, var(--color-hanji-ivory));
 }
 
 .active {
