@@ -1,0 +1,8 @@
+.secondaryRow {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.secondaryRow > * {
+  flex: 1 1 auto;
+}

@@ -21,35 +21,46 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  /* 카드 개수가 많아 스크롤이 기니, 촘촘해 보이지 않게 세로 간격을 넉넉히 */
-  gap: var(--space-lg) var(--space-sm);
+  /* 요청서 6.4 — 모바일 기본은 1열. 넓은 화면(480px~)에서만 2열 검토 */
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .tile {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  min-height: 68px;
-  box-sizing: border-box;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  /* 이름/조건/진행/획득일까지 들어가야 해서 고정 높이를 두지 않고 내용에 맞춰 늘어나게 함 */
   border-radius: var(--radius-card);
-  min-width: 0; /* 자식 텍스트 말줄임이 grid item 안에서 동작하게 함 */
-  background-size: 100% 100%;
+  min-width: 0;
+  /* 카드 높이가 내용에 따라 달라져서 배경을 늘려찍지 않고 잘라서(cover) 왜곡을 막는다 */
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
 }
 
 .earned {
-  background-image: url("/title-card-earned.png");
+  background-image: linear-gradient(
+      color-mix(in srgb, var(--color-hanji-ivory) 20%, transparent),
+      color-mix(in srgb, var(--color-hanji-ivory) 20%, transparent)
+    ),
+    url("/title-card-earned.png");
   color: var(--color-heritage-brown);
 }
 
 .locked {
   /* 장식 자체는 유지하되, 살짝 옅은 막을 얹어 텍스트와의 대비를 확보한다 — 카드가
-     "읽을 수 없는" 수준으로 어두워지지 않게 10~15% 정도만. */
+     "읽을 수 없는" 수준으로 어두워지지 않게 20% 정도만. */
   background-image: linear-gradient(
-      color-mix(in srgb, var(--color-hanji-ivory) 12%, transparent),
-      color-mix(in srgb, var(--color-hanji-ivory) 12%, transparent)
+      color-mix(in srgb, var(--color-hanji-ivory) 20%, transparent),
+      color-mix(in srgb, var(--color-hanji-ivory) 20%, transparent)
     ),
     url("/title-card-locked.png");
   color: var(--color-disabled);
@@ -57,31 +68,39 @@
 
 .icon {
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .name {
   /* 잠금 상태라도 칭호명 자체는 읽기 쉬운 톤을 쓴다 — 잠금 느낌은 아이콘/장식으로 충분히 전달됨 */
   color: var(--color-secondary-text);
-  font-weight: 600;
-  font-size: var(--font-size-body);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .earned .name {
   color: var(--color-heritage-brown);
 }
 
-.progress {
-  font-size: var(--font-size-caption);
+.description {
   color: var(--color-secondary-text);
-  opacity: 0.9;
+  white-space: normal;
+}
+
+.progress {
+  color: var(--color-secondary-text);
+  font-weight: 600;
+}
+
+.awardedAt {
+  color: var(--color-secondary-text);
+  opacity: 0.85;
 }

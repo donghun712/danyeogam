@@ -38,20 +38,36 @@
 
 .parkingPreview {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-sand);
-  border-radius: var(--radius-input);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--space-sm);
-  margin-top: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-top: 1px solid var(--color-sand);
+  border-bottom: 1px solid var(--color-sand);
 }
 
-.actions > * {
-  flex: 1 1 auto;
+.parkingIcon {
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--color-disabled);
+}
+
+.parkingLabel {
+  color: var(--color-disabled);
+  flex-shrink: 0;
+}
+
+.parkingName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+
+.secondaryActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
 }

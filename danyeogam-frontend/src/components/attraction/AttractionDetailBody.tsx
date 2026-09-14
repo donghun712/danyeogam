@@ -4,6 +4,7 @@ import { FacilityBadge } from "./FacilityBadge";
 import { AppIcon } from "@/constants/icons";
 import type { TouristSpotDetail } from "@/types/api";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
+import { getVisitBadgeKind } from "@/utils/visitStatus";
 import styles from "./AttractionDetailBody.module.css";
 
 interface AttractionDetailBodyProps {
@@ -24,6 +25,7 @@ export function AttractionDetailBody({
 }: AttractionDetailBodyProps) {
   const imageUrl = safeExternalHttpUrl(detail.images[0]?.url);
   const homepageUrl = safeExternalHttpUrl(detail.homepageUrl);
+  const visitBadge = getVisitBadgeKind(detail);
 
   return (
     <div className={styles.content}>
@@ -39,10 +41,8 @@ export function AttractionDetailBody({
       )}
 
       <div className={styles.badgeRow}>
-        {detail.stampEnabled && <Badge tone="brand">스탬프 가능</Badge>}
-        {detail.visitState === "VISITED" && (
-          <Badge tone="success">✓ 방문 완료</Badge>
-        )}
+        {visitBadge === "visited" && <Badge tone="success">✓ 방문 완료</Badge>}
+        {visitBadge === "stampAvailable" && <Badge tone="brand">스탬프 가능</Badge>}
       </div>
 
       <h2 className="text-h2">{detail.name}</h2>

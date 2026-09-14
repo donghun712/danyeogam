@@ -10,9 +10,22 @@ import styles from "./TitleSection.module.css";
  * currentValue/targetValue/progressUnit은 전부 서버가 계산해서 내려주는 값을 그대로
  * 표시한다 — CollectionProgress와 동일한 원칙으로 프론트에서 다시 계산하지 않는다.
  */
+/**
+ * currentValue/targetValue/progressUnit은 전부 서버가 계산해서 내려주는 값을 그대로
+ * 표시한다 — CollectionProgress와 동일한 원칙으로 프론트에서 다시 계산하지 않는다.
+ * 요청서 6.4 — 조건 단위를 해석 가능한 형태로: 횟수/지역 수는 "n / 목표단위",
+ * 비율은 "현재 n% · 목표 m%".
+ */
 function formatProgress({ currentValue, targetValue, progressUnit }: Title): string {
   const shown = Math.min(currentValue, targetValue);
-  return progressUnit === "PERCENT" ? `${shown}% / ${targetValue}%` : `${shown} / ${targetValue}`;
+  if (progressUnit === "PERCENT") return `현재 ${shown}% · 목표 ${targetValue}%`;
+  const unitLabel = progressUnit === "REGIONS" ? "곳" : "회";
+  return `${shown} / ${targetValue}${unitLabel}`;
+}
+
+/** 획득일은 실제 값이 있을 때만 "2026.05.12 획득" 형태로 — 시간대 변환 없이 날짜 부분만 그대로 */
+function formatAwardedDate(awardedAt: string): string {
+  return `${awardedAt.slice(0, 10).replaceAll("-", ".")} 획득`;
 }
 
 function TitleTile({ title }: { title: Title }) {
@@ -20,12 +33,19 @@ function TitleTile({ title }: { title: Title }) {
   return (
     <div
       className={`${styles.tile} ${title.earned ? styles.earned : styles.locked}`}
-      title={title.description}
     >
-      <Icon className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+      <Icon className={styles.icon} size={22} strokeWidth={2} aria-hidden="true" />
       <div className={styles.body}>
-        <p className={`text-caption ${styles.name}`}>{title.name}</p>
-        <p className={styles.progress}>{formatProgress(title)}</p>
+        <p className={`text-body ${styles.name}`}>{title.name}</p>
+        {title.description && (
+          <p className={`text-caption ${styles.description}`}>{title.description}</p>
+        )}
+        <p className={`text-caption ${styles.progress}`}>{formatProgress(title)}</p>
+        {title.earned && title.awardedAt && (
+          <p className={`text-caption ${styles.awardedAt}`}>
+            {formatAwardedDate(title.awardedAt)}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -58,7 +78,7 @@ export function TitleSection() {
           {Array.from({ length: 4 }).map((_, index) => (
             <Skeleton
               key={`title-skeleton-${index}`}
-              height="52px"
+              height="88px"
               radius="var(--radius-card)"
             />
           ))}

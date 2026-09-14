@@ -8,6 +8,7 @@ import { NavigationButton } from "@/components/common/NavigationButton";
 import { ShareButton } from "@/components/common/ShareButton";
 import { FavoriteButton } from "@/components/common/FavoriteButton";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
+import { shouldShowStampCta } from "@/utils/visitStatus";
 import { ROUTES } from "@/constants/routes";
 
 /**
@@ -15,9 +16,10 @@ import { ROUTES } from "@/constants/routes";
  *
  * 바텀시트(AttractionSummaryBody)와 다르게 여기는 시안 그대로 전체 정보
  * (AttractionDetailBody: 전체 소개글, 운영시간/휴무일, 시설정보 등)를 보여준다.
- * 액션은 "스탬프 인증하기"(stampEnabled일 때만), "길찾기", "주차장 보기"만 두고
- * ("상세 보기"는 이미 이 화면이라 의미가 없음). 헤더 우측엔 시안대로 즐겨찾기·공유 아이콘을 둔다
- * (백엔드에 즐겨찾기 API가 생겨서 이번엔 실제로 연결했다 — docs/frontend-favorites-api.md).
+ * 요청서 5.1/5.3 — 보조 액션(길찾기/주차장 보기)을 먼저, 인증 CTA를 마지막에 두고,
+ * 방문 완료가 확인되면 인증 CTA 자체를 숨긴다(shouldShowStampCta로 visitState까지 확인 —
+ * stampEnabled만 보던 이전 로직은 방문 완료 후에도 버튼이 남는 버그가 있었다).
+ * 헤더 우측엔 시안대로 즐겨찾기·공유 아이콘을 둔다.
  * STEP 8: 이미 보여주고 있던 detail이 있으면(같은 관광지의 백그라운드 재조회/재시도) 그
  * 데이터를 계속 보여주고, detail이 아예 없을 때만 Loading/Error 상태 화면으로 전환한다.
  */
@@ -65,14 +67,6 @@ export function AttractionDetailPage() {
           detail={detail}
           actions={
             <>
-              {detail.stampEnabled && (
-                <Button
-                  fullWidth
-                  onClick={() => navigate(ROUTES.attractionStamp(detail.id))}
-                >
-                  스탬프 인증하기
-                </Button>
-              )}
               <NavigationButton navigation={detail.navigation} />
               <Button
                 variant="secondary"
@@ -80,6 +74,14 @@ export function AttractionDetailPage() {
               >
                 주차장 보기
               </Button>
+              {shouldShowStampCta(detail) && (
+                <Button
+                  fullWidth
+                  onClick={() => navigate(ROUTES.attractionStamp(detail.id))}
+                >
+                  스탬프 인증하기
+                </Button>
+              )}
             </>
           }
         />
