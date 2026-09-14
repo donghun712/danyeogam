@@ -3,9 +3,9 @@
 ## 파일
 
 - `danyeogam_schema.sql`: MySQL 8.4용 독립 실행형 초기 스키마
-- `danyeogam_tour_seed.sql`: 2026-09-08 역사·문화 스탬프 카탈로그 데이터 덤프
+- `danyeogam_tour_seed.sql`: 2026-09-13 역사·문화 스탬프 카탈로그·상세정보 데이터 덤프
 
-`danyeogam_tour_seed.sql` SHA-256: `fde41f01e830da7409e03edb7e7c991541145a7a084b6993e2a47a52dd5fe520`
+`danyeogam_tour_seed.sql` SHA-256: `0f9c3f0b5e16fcd7194e9b3bccc43580f0e377c8ed22a4f8f8f32b6ed3d9e6dc`
 
 ## 생성되는 범위
 
@@ -16,14 +16,30 @@
 - P1 도감 집계 기반과 칭호
 - TourAPI staging, 동기화 실행 이력, 오류 이력
 
-두 SQL 파일 모두 API 키를 포함하지 않는다. 데이터 덤프에는 `region`과 `tourist_spot` 데이터가 포함되며 대표 이미지 URL과 스탬프 대상 설정은 관광지 행에 저장되어 있다. 세션, 방문, 인증 시도, staging, 동기화 이력은 포함하지 않는다.
+두 SQL 파일 모두 API 키를 포함하지 않는다. 데이터 덤프에는 활성 `region`, 활성 `tourist_spot`, 해당 장소의 `tourist_spot_image`, 지역별 `title_definition` 데이터가 포함된다. 관광지 3,885건 모두 공통 상세정보와 소개정보 수집 완료 시각이 저장되어 있으며 TourAPI 원본이 제공한 설명·운영시간·휴무일·시설정보와 상세 이미지가 포함된다. 전역 칭호 7건은 Flyway V5가 생성하므로 덤프에는 지역 칭호 16건만 포함한다. 세션, 방문, 인증 시도, 즐겨찾기, 칭호 획득, staging, 동기화 실행·오류 이력은 포함하지 않는다.
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
 빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1~V6 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
 
+Windows의 MySQL 클라이언트는 `SOURCE` 대상에 한글 경로가 있으면 파일을 열지 못할 수 있다. 아래처럼 영문 임시 경로를 사용하면 저장소 위치와 관계없이 안전하게 복원할 수 있다.
+
 ```powershell
-mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE C:/관광데이터/db/danyeogam_tour_seed.sql"
+$seedSourcePath = (Resolve-Path -LiteralPath '.\db\danyeogam_tour_seed.sql').Path
+$seedImportPath = Join-Path ([IO.Path]::GetTempPath()) 'danyeogam_tour_seed.sql'
+Copy-Item -LiteralPath $seedSourcePath -Destination $seedImportPath -Force
+try {
+    $mysqlSourcePath = $seedImportPath.Replace('\', '/')
+    mysql --default-character-set=utf8mb4 -u root -p --database=danyeogam -e "SOURCE $mysqlSourcePath"
+} finally {
+    Remove-Item -LiteralPath $seedImportPath -Force -ErrorAction SilentlyContinue
+}
+```
+
+Linux 서버에서는 저장소 루트에서 다음과 같이 복원할 수 있다.
+
+```bash
+mysql --default-character-set=utf8mb4 -u root -p danyeogam < db/danyeogam_tour_seed.sql
 ```
 
 이 순서로 복원하면 `flyway_schema_history`가 유지되어 백엔드가 다음 실행에서도 정상 기동한다. 이미 `danyeogam_schema.sql`로 만든 비어 있지 않은 DB에는 Flyway 이력이 없으므로 백엔드를 바로 연결하지 않는다.
@@ -60,6 +76,8 @@ SHOW INDEX FROM tourist_spot;
 2026-09-05에는 별도 검증 DB에 스키마와 당시 전국 원본 데이터 덤프를 순서대로 복원했다.
 
 2026-09-08에는 세부 분류 정책에 맞춰 역사유적 2,376건, 역사유물 398건, 박물관 594건, 기념관 155건, 미술관·화랑 362건을 담은 덤프를 새로 만들었다. 별도 검증 DB에 V1·V2를 적용한 다음 덤프를 복원했으며 지역 284건, 장소 3,885건, 정책 위반 0건, 스탬프 상태 오류 0건, 공간 인덱스 1개를 확인했다.
+
+2026-09-13에는 남은 상세정보 증분 수집을 완료한 뒤 덤프를 갱신했다. 활성 관광지 3,885건 모두 `detail_hydrated_at`과 `intro_hydrated_at`이 채워졌고 상세 설명 3,885건, 운영시간 3,712건, 휴무일 3,679건, 상세 이미지 25,835건을 확인했다. 운영시간·휴무일 건수 차이는 호출 실패가 아니라 TourAPI 원본의 미제공 항목이다. 새 빈 DB에 Flyway V1~V6를 적용한 후 이 덤프를 복원했으며 공간 인덱스, 칭호 23건, 사용자 데이터 미포함과 실제 상세·도감·칭호 API 기동을 확인했다.
 
 ## 중요한 정책
 
