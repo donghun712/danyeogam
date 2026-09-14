@@ -18,13 +18,19 @@ export function CollectionCard({ item }: CollectionCardProps) {
 
   return (
     <Card padded={false} className={styles.card}>
-      {visited && thumbnailUrl ? (
-        <img src={thumbnailUrl} alt={item.name} className={styles.image} />
-      ) : (
-        <div className={styles.placeholder} aria-hidden="true">
-          {visited ? "" : "?"}
-        </div>
-      )}
+      <div
+        className={visited ? styles.frameVisited : styles.frameUnvisited}
+      >
+        {visited && thumbnailUrl ? (
+          <img src={thumbnailUrl} alt={item.name} className={styles.image} />
+        ) : (
+          !visited && (
+            <span className={styles.placeholderMark} aria-hidden="true">
+              ?
+            </span>
+          )
+        )}
+      </div>
       <div className={styles.footer}>
         <p className="text-caption">{visited ? item.name : "아직 미방문"}</p>
         {visited && <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>}

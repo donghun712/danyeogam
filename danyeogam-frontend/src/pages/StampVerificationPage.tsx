@@ -4,7 +4,6 @@ import { FullPageLayout } from "@/components/common/FullPageLayout";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { StampSeal } from "@/components/stamp/StampSeal";
-import { StampSealSparkles } from "@/components/stamp/StampSealSparkles";
 import { StampRadar } from "@/components/stamp/StampRadar";
 import { StampMeasurementInfo } from "@/components/stamp/StampMeasurementInfo";
 import { AppIcon } from "@/constants/icons";
@@ -183,11 +182,7 @@ export function StampVerificationPage() {
         {phase === "result" && result?.status === "VERIFIED_NEW" && (
           <div className={styles.center}>
             <p className="text-h1">스탬프 획득!</p>
-            {detail && (
-              <StampSealSparkles>
-                <StampSeal name={detail.name} />
-              </StampSealSparkles>
-            )}
+            {detail && <StampSeal name={detail.name} />}
             <p className="text-body">방문 인증을 완료했어요!</p>
             {matchedRegionProgress && (
               <p className="text-h3">

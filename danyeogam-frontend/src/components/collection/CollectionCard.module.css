@@ -5,17 +5,36 @@
 
 .image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
 }
 
-.placeholder {
+.frameVisited {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  /* 프레임 이미지(collection-card-visited.png)의 실제 투명 구멍 위치를 픽셀 단위로
+     측정해서 맞춘 값이다 — 대략치가 아니라 실측값. */
+  padding: 20% 17% 24% 13%;
+  box-sizing: border-box;
+  background-image: url("/collection-card-visited.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.frameUnvisited {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-sand);
+  background-image: url("/collection-card-unvisited.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.placeholderMark {
   color: var(--color-disabled);
   font-size: var(--font-size-h1);
   font-weight: 700;

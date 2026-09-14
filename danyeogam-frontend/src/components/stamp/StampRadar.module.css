@@ -27,6 +27,32 @@
   color: var(--radar-color);
 }
 
+.imageRing {
+  position: relative;
+  z-index: 1;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.imageContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--radar-color);
+}
+
 .pulse {
   position: absolute;
   inset: 0;

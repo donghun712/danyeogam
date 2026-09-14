@@ -32,15 +32,17 @@
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-card);
   min-width: 0; /* 자식 텍스트 말줄임이 grid item 안에서 동작하게 함 */
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 .earned {
-  background: color-mix(in srgb, var(--color-heritage-brown) 12%, var(--color-hanji-ivory));
+  background-image: url("/title-card-earned.png");
   color: var(--color-heritage-brown);
 }
 
 .locked {
-  background: var(--color-sand);
+  background-image: url("/title-card-locked.png");
   color: var(--color-disabled);
 }
 

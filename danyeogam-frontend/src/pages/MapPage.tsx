@@ -50,24 +50,28 @@ export function MapPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.addressBar}>
-        <AppIcon.location size={16} strokeWidth={2} aria-hidden="true" />
-        <span className="text-body">
-          {address.status === "success" && address.addressName
-            ? address.addressName
-            : currentLocation.status === "permission_denied"
-              ? "위치 권한이 필요해요"
-              : currentLocation.status === "unavailable"
-                ? "위치를 사용할 수 없어요"
-                : currentLocation.status === "timeout"
-                  ? "위치 확인 시간이 초과됐어요"
-                  : currentLocation.status === "success" && address.status === "error"
-                    ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
-                    : "현재 위치 확인 중..."}
-        </span>
+      <div className={styles.brandHeader}>
+        <img src="/danyeogam-logo.png" alt="다녀감" className={styles.logo} />
       </div>
 
       <div className={styles.mapArea}>
+        <div className={styles.addressBar}>
+          <AppIcon.location size={16} strokeWidth={2} aria-hidden="true" />
+          <span className="text-body">
+            {address.status === "success" && address.addressName
+              ? address.addressName
+              : currentLocation.status === "permission_denied"
+                ? "위치 권한이 필요해요"
+                : currentLocation.status === "unavailable"
+                  ? "위치를 사용할 수 없어요"
+                  : currentLocation.status === "timeout"
+                    ? "위치 확인 시간이 초과됐어요"
+                    : currentLocation.status === "success" && address.status === "error"
+                      ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
+                      : "현재 위치 확인 중..."}
+          </span>
+        </div>
+
         {sdkStatus === "error" && (
           <ErrorState message="카카오맵을 불러오지 못했습니다. VITE_KAKAO_JS_KEY 설정을 확인해 주세요." />
         )}

@@ -7,6 +7,18 @@
   min-height: 0;
 }
 
+.brandHeader {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md) var(--space-screen-padding-x);
+  background: var(--color-hanji-ivory);
+}
+
+.logo {
+  height: 28px;
+  width: auto;
+}
+
 .addressBar {
   position: absolute;
   top: var(--space-lg);

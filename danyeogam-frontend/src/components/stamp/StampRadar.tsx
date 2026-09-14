@@ -19,7 +19,11 @@ const TONE_VAR: Record<StampRadarTone, string> = {
 };
 
 /**
- * 화면시안 "04 스탬프 인증(GPS 확인)"의 원형 반경 그래픽을 UI 표현으로만 구현한다.
+ * 화면시안 "04 스탬프 인증(GPS 확인)"의 원형 반경 그래픽.
+ * "active" 톤(대부분의 상태 — 측정 중/거리 확인)은 실제 손그림 질감 이미지
+ * (public/gps-radar-ring.png, Heritage Brown 톤)를 쓴다. "warning"(GPS 정확도 부족)/
+ * "info"(위치 오래됨)는 해당 색상 에셋이 없어서 기존 CSS 원형 테두리를 그대로 쓴다 —
+ * 없는 에셋을 임의로 색만 바꿔 재사용하지 않는다.
  * 거리·정확도 판정은 서버 책임이라(STAMP-01) 여기서는 아무 값도 계산하지 않고,
  * distanceMeters가 실제로 주어졌을 때만 그 값을 그대로 보여준다.
  */
@@ -30,13 +34,26 @@ export function StampRadar({ tone, distanceMeters, scanning }: StampRadarProps) 
   return (
     <div className={styles.wrapper} style={radarStyle}>
       {scanning && <div className={styles.pulse} aria-hidden="true" />}
-      <div className={styles.ring}>
-        {distanceMeters != null ? (
-          <span className={styles.distance}>{Math.round(distanceMeters)}m</span>
-        ) : (
-          <AppIcon.location size={36} strokeWidth={2} aria-hidden="true" />
-        )}
-      </div>
+      {tone === "active" ? (
+        <div className={styles.imageRing}>
+          <img src="/gps-radar-ring.png" alt="" className={styles.ringImage} />
+          <div className={styles.imageContent}>
+            {distanceMeters != null ? (
+              <span className={styles.distance}>{Math.round(distanceMeters)}m</span>
+            ) : (
+              <AppIcon.location size={36} strokeWidth={2} aria-hidden="true" />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className={styles.ring}>
+          {distanceMeters != null ? (
+            <span className={styles.distance}>{Math.round(distanceMeters)}m</span>
+          ) : (
+            <AppIcon.location size={36} strokeWidth={2} aria-hidden="true" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
