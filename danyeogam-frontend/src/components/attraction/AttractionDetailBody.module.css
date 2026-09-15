@@ -18,6 +18,16 @@
   background: var(--color-sand);
 }
 
+.imageAttribution {
+  margin: calc(var(--space-xs) * -1) 0 0;
+  color: var(--color-disabled);
+  text-align: right;
+}
+
+.imageAttribution a {
+  color: inherit;
+}
+
 .badgeRow {
   display: flex;
   gap: var(--space-sm);

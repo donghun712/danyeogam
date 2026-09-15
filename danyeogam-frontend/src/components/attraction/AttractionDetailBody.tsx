@@ -24,6 +24,7 @@ export function AttractionDetailBody({
   actions,
 }: AttractionDetailBodyProps) {
   const imageUrl = safeExternalHttpUrl(detail.images[0]?.url);
+  const imageSourceUrl = safeExternalHttpUrl(detail.images[0]?.sourcePageUrl);
   const homepageUrl = safeExternalHttpUrl(detail.homepageUrl);
   const visitBadge = getVisitBadgeKind(detail);
 
@@ -38,6 +39,17 @@ export function AttractionDetailBody({
       ) : (
         // 백엔드는 이미지가 없으면 빈 배열을 반환하므로(8.4절) 프론트가 기본 이미지를 대신 채운다.
         <div className={styles.imageFallback} aria-hidden="true" />
+      )}
+      {imageUrl && detail.images[0]?.attribution && (
+        <p className={`text-caption ${styles.imageAttribution}`}>
+          {imageSourceUrl ? (
+            <a href={imageSourceUrl} target="_blank" rel="noreferrer noopener">
+              {detail.images[0].attribution}
+            </a>
+          ) : (
+            detail.images[0].attribution
+          )}
+        </p>
       )}
 
       <div className={styles.badgeRow}>

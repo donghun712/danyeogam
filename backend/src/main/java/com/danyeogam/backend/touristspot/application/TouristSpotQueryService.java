@@ -139,6 +139,9 @@ public class TouristSpotQueryService {
             images = List.of(new TouristSpotImageResponse(
                     spot.getOriginalImageUrl(),
                     spot.getName(),
+                    null,
+                    null,
+                    null,
                     null
             ));
         }
@@ -246,7 +249,10 @@ public class TouristSpotQueryService {
         return new TouristSpotImageResponse(
                 image.getUrl(),
                 blankToNull(image.getAltText()),
-                blankToNull(image.getCopyrightType())
+                blankToNull(image.getCopyrightType()),
+                blankToNull(image.getAttribution()),
+                blankToNull(image.getSourcePageUrl()),
+                blankToNull(image.getLicenseUrl())
         );
     }
 

@@ -232,6 +232,11 @@ CREATE TABLE IF NOT EXISTS tourist_spot_image (
     sort_order          INT UNSIGNED    NOT NULL DEFAULT 0,
     copyright_type      VARCHAR(30)     NULL,
     source_image_id     VARCHAR(100)    NULL,
+    source_provider     VARCHAR(200)    NULL,
+    source_page_url     VARCHAR(1000)   NULL,
+    license_url         VARCHAR(1000)   NULL,
+    attribution         VARCHAR(500)    NULL,
+    verified_at         DATE            NULL,
     created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
                                           ON UPDATE CURRENT_TIMESTAMP(6),

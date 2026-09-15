@@ -40,6 +40,21 @@ public class TouristSpotImage {
     @Column(name = "source_image_id", length = 100)
     private String sourceImageId;
 
+    @Column(name = "source_provider", length = 200)
+    private String sourceProvider;
+
+    @Column(name = "source_page_url", length = 1000)
+    private String sourcePageUrl;
+
+    @Column(name = "license_url", length = 1000)
+    private String licenseUrl;
+
+    @Column(length = 500)
+    private String attribution;
+
+    @Column(name = "verified_at")
+    private java.time.LocalDate verifiedAt;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -94,6 +109,26 @@ public class TouristSpotImage {
 
     public String getSourceImageId() {
         return sourceImageId;
+    }
+
+    public String getSourceProvider() {
+        return sourceProvider;
+    }
+
+    public String getSourcePageUrl() {
+        return sourcePageUrl;
+    }
+
+    public String getLicenseUrl() {
+        return licenseUrl;
+    }
+
+    public String getAttribution() {
+        return attribution;
+    }
+
+    public java.time.LocalDate getVerifiedAt() {
+        return verifiedAt;
     }
 
     public Instant getCreatedAt() {

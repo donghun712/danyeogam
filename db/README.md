@@ -4,6 +4,7 @@
 
 - `danyeogam_schema.sql`: MySQL 8.4용 독립 실행형 초기 스키마
 - `danyeogam_tour_seed.sql`: 2026-09-13 역사·문화 스탬프 카탈로그·상세정보 데이터 덤프
+- `danyeogam_external_images.sql`: 외부 출처 검증을 통과한 관광지 이미지 131건 보완 데이터
 
 `danyeogam_tour_seed.sql` SHA-256: `0f9c3f0b5e16fcd7194e9b3bccc43580f0e377c8ed22a4f8f8f32b6ed3d9e6dc`
 
@@ -20,7 +21,7 @@
 
 ## 백엔드에서 사용하는 권장 복원 순서
 
-빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1~V6 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 데이터 덤프를 넣는다.
+빈 `danyeogam` 데이터베이스를 만든 뒤 백엔드를 한 번 실행해 Flyway V1~V7 스키마를 적용한다. 백엔드를 종료하거나 외부 요청을 받지 않는 상태에서 기본 데이터 덤프와 이미지 보완 데이터를 차례로 넣는다. 로컬에서는 `scripts/import-local-seed.ps1`이 두 파일을 자동으로 적용한다.
 
 Windows의 MySQL 클라이언트는 `SOURCE` 대상에 한글 경로가 있으면 파일을 열지 못할 수 있다. 아래처럼 영문 임시 경로를 사용하면 저장소 위치와 관계없이 안전하게 복원할 수 있다.
 
@@ -106,4 +107,4 @@ SHOW INDEX FROM tourist_spot;
 
 키 원문은 SQL 파일이나 DB 일반 테이블에 저장하지 않고 배포 환경의 Secret으로 주입한다.
 
-백엔드에서는 `V1__init_schema.sql`부터 `V6__update_title_schema_metadata.sql`까지 순서대로 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.
+백엔드에서는 `V1__init_schema.sql`부터 `V7__add_tourist_image_provenance.sql`까지 순서대로 사용한다. 운영 환경에서는 `CREATE DATABASE`와 `USE`를 인프라 설정과 분리한다.

@@ -29,6 +29,7 @@ export function AttractionSummaryBody({
   secondaryActions,
 }: AttractionSummaryBodyProps) {
   const imageUrl = safeExternalHttpUrl(detail.images[0]?.url);
+  const imageSourceUrl = safeExternalHttpUrl(detail.images[0]?.sourcePageUrl);
   const visitBadge = getVisitBadgeKind(detail);
   // 시안의 "가까운 공영주차장" 미리보기 한 줄 — 이미 있는 주차장 API를 limit=1로 재사용한다.
   const { items: nearbyParking, status: parkingStatus } = useNearbyParking(
@@ -48,6 +49,17 @@ export function AttractionSummaryBody({
         />
       ) : (
         <div className={styles.imageFallback} aria-hidden="true" />
+      )}
+      {imageUrl && detail.images[0]?.attribution && (
+        <p className={`text-caption ${styles.imageAttribution}`}>
+          {imageSourceUrl ? (
+            <a href={imageSourceUrl} target="_blank" rel="noreferrer noopener">
+              {detail.images[0].attribution}
+            </a>
+          ) : (
+            detail.images[0].attribution
+          )}
+        </p>
       )}
 
       <div className={styles.badgeRow}>

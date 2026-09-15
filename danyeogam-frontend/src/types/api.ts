@@ -83,6 +83,9 @@ export interface SpotImage {
   url: string;
   alt: string;
   copyrightType: string | null;
+  attribution: string | null;
+  sourcePageUrl: string | null;
+  licenseUrl: string | null;
 }
 
 export interface NavigationTarget {
