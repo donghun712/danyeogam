@@ -9,11 +9,7 @@ import styles from "./TitleSection.module.css";
 /**
  * currentValue/targetValue/progressUnit은 전부 서버가 계산해서 내려주는 값을 그대로
  * 표시한다 — CollectionProgress와 동일한 원칙으로 프론트에서 다시 계산하지 않는다.
- */
-/**
- * currentValue/targetValue/progressUnit은 전부 서버가 계산해서 내려주는 값을 그대로
- * 표시한다 — CollectionProgress와 동일한 원칙으로 프론트에서 다시 계산하지 않는다.
- * 요청서 6.4 — 조건 단위를 해석 가능한 형태로: 횟수/지역 수는 "n / 목표단위",
+ * 요청서 — 조건 단위를 해석 가능한 형태로: 횟수/지역 수는 "n / 목표단위",
  * 비율은 "현재 n% · 목표 m%".
  */
 function formatProgress({ currentValue, targetValue, progressUnit }: Title): string {
@@ -23,29 +19,62 @@ function formatProgress({ currentValue, targetValue, progressUnit }: Title): str
   return `${shown} / ${targetValue}${unitLabel}`;
 }
 
-/** 획득일은 실제 값이 있을 때만 "2026.05.12 획득" 형태로 — 시간대 변환 없이 날짜 부분만 그대로 */
-function formatAwardedDate(awardedAt: string): string {
-  return `${awardedAt.slice(0, 10).replaceAll("-", ".")} 획득`;
+/** progress bar 채움 비율(%) — 서버가 내려준 currentValue/targetValue 그대로 계산, 새 데이터 없음 */
+function progressPercent({ currentValue, targetValue, progressUnit }: Title): number {
+  if (targetValue <= 0) return 0;
+  const value = progressUnit === "PERCENT" ? currentValue : (currentValue / targetValue) * 100;
+  return Math.max(0, Math.min(100, value));
 }
 
-function TitleTile({ title }: { title: Title }) {
-  const Icon = title.earned ? AppIcon.title : AppIcon.titleLocked;
+/** 획득일은 실제 값이 있을 때만 "2026.05.12" 형태로 — 시간대 변환 없이 날짜 부분만 그대로 */
+function formatAwardedDate(awardedAt: string): string {
+  return awardedAt.slice(0, 10).replaceAll("-", ".");
+}
+
+/**
+ * 요청서 5단계 — 획득/미획득을 미세조정이 아니라 완전히 다른 역할로 재설계.
+ * 획득 = "기념패"(특별한 카드), 미획득 = "목표 목록"(간결한 리스트 아이템).
+ */
+function EarnedTile({ title }: { title: Title }) {
   return (
-    <div
-      className={`${styles.tile} ${title.earned ? styles.earned : styles.locked}`}
-    >
-      <Icon className={styles.icon} size={22} strokeWidth={2} aria-hidden="true" />
-      <div className={styles.body}>
-        <p className={`text-body ${styles.name}`}>{title.name}</p>
+    <div className={styles.earnedTile}>
+      <div className={styles.medal}>
+        <AppIcon.title size={20} strokeWidth={2} aria-hidden="true" />
+      </div>
+      <div className={styles.earnedBody}>
+        <div className={styles.earnedTopRow}>
+          <p className={styles.earnedName}>{title.name}</p>
+          <span className={styles.earnedBadge}>획득</span>
+        </div>
         {title.description && (
-          <p className={`text-caption ${styles.description}`}>{title.description}</p>
+          <p className={`text-caption ${styles.earnedDescription}`}>{title.description}</p>
         )}
-        <p className={`text-caption ${styles.progress}`}>{formatProgress(title)}</p>
-        {title.earned && title.awardedAt && (
-          <p className={`text-caption ${styles.awardedAt}`}>
-            {formatAwardedDate(title.awardedAt)}
-          </p>
+        {title.awardedAt && (
+          <p className={`text-caption ${styles.earnedDate}`}>{formatAwardedDate(title.awardedAt)} 획득</p>
         )}
+      </div>
+    </div>
+  );
+}
+
+function LockedTile({ title }: { title: Title }) {
+  return (
+    <div className={styles.lockedTile}>
+      <div className={styles.lockedTopRow}>
+        <AppIcon.titleLocked size={14} strokeWidth={2} className={styles.lockIcon} aria-hidden="true" />
+        <p className={styles.lockedName}>{title.name}</p>
+      </div>
+      {title.description && (
+        <p className={`text-caption ${styles.lockedDescription}`}>{title.description}</p>
+      )}
+      <div className={styles.progressRow}>
+        <div className={styles.progressTrack}>
+          <div
+            className={styles.progressFill}
+            style={{ width: `${progressPercent(title)}%` }}
+          />
+        </div>
+        <span className={styles.progressText}>{formatProgress(title)}</span>
       </div>
     </div>
   );
@@ -74,11 +103,11 @@ export function TitleSection() {
       </div>
 
       {status === "loading" && (
-        <div className={styles.grid}>
+        <div className={styles.list}>
           {Array.from({ length: 4 }).map((_, index) => (
             <Skeleton
               key={`title-skeleton-${index}`}
-              height="88px"
+              height="76px"
               radius="var(--radius-card)"
             />
           ))}
@@ -98,10 +127,14 @@ export function TitleSection() {
       )}
 
       {status === "success" && (
-        <div className={styles.grid}>
-          {titles.map((title) => (
-            <TitleTile key={title.id} title={title} />
-          ))}
+        <div className={styles.list}>
+          {titles.map((title) =>
+            title.earned ? (
+              <EarnedTile key={title.id} title={title} />
+            ) : (
+              <LockedTile key={title.id} title={title} />
+            ),
+          )}
         </div>
       )}
     </section>

@@ -7,6 +7,7 @@ import {
   Clock,
   ChevronDown,
   Globe,
+  ImageOff,
   Info,
   LocateFixed,
   Lock,
@@ -47,4 +48,5 @@ export const AppIcon = {
   title: Award,
   titleLocked: Lock,
   mapLegend: Info,
+  noImage: ImageOff,
 } as const;

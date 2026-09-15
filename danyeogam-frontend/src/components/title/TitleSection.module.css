@@ -19,122 +19,160 @@
   color: var(--color-secondary-text);
 }
 
-.grid {
-  display: grid;
-  /* 요청서 6.4 — 모바일 기본은 1열. 넓은 화면(480px~)에서만 2열 검토 */
-  grid-template-columns: 1fr;
+.list {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-md);
 }
 
-@media (min-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.tile {
+/* ===== 획득 칭호 — "기념패" 역할. 확실히 특별하게 보이도록 무채색 톤에서
+   벗어나 heritage-brown 계열 배경/테두리를 쓰고, 기존 장식 에셋은 아주 옅은
+   워터마크(10%)로만 남긴다. ===== */
+.earnedTile {
   position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
   padding: var(--space-lg);
-  /* 이름/조건/진행/획득일까지 들어가야 해서 고정 높이를 두지 않고 내용에 맞춰 늘어나게 함 */
   border-radius: var(--radius-card);
-  min-width: 0;
-  /* 요청서 5단계 — 장식 프레임 이미지를 카드 레이아웃 자체로 쓰지 않는다. 카드는
-     현대적인 단순 사각형(배경색+테두리)으로 만들고, 기존 에셋은 아주 옅은 워터마크
-     포인트로만 깐다(정보가 장식보다 먼저 보이게). overflow:hidden으로 워터마크가
-     카드 경계를 절대 침범하지 못하게 한다 — "메달이 카드 밖으로 튀어나오는" 문제의
-     근본 원인이 배경 이미지가 카드 크기와 안 맞을 때 생기는 거라, 아예 그 이미지를
-     정보 레이아웃에서 분리한다. */
   overflow: hidden;
-  background-color: var(--color-hanji-ivory);
-  border: 1px solid var(--color-sand);
+  background-color: color-mix(in srgb, var(--color-heritage-brown) 6%, var(--color-hanji-ivory));
+  border: 1px solid color-mix(in srgb, var(--color-heritage-brown) 32%, var(--color-sand));
+  box-shadow: var(--shadow-card);
 }
 
-.tile::before {
+.earnedTile::before {
   content: "";
   position: absolute;
   inset: 0;
+  background-image: url("/title-card-earned.png");
   background-size: cover;
   background-position: center;
+  opacity: 0.1;
   pointer-events: none;
 }
 
-.earned {
-  color: var(--color-heritage-brown);
-  border-color: color-mix(in srgb, var(--color-heritage-brown) 35%, var(--color-sand));
-  /* 획득 카드만 왼쪽에 heritage-brown 액센트 바 — "작은 축하 장식" 역할을
-     화려한 이미지 대신 절제된 포인트로 대신한다. */
-  box-shadow: inset 3px 0 0 var(--color-heritage-brown);
-}
-
-.earned::before {
-  background-image: url("/title-card-earned.png");
-  opacity: 0.14;
-}
-
-.locked {
-  color: var(--color-disabled);
-}
-
-.locked::before {
-  background-image: url("/title-card-locked.png");
-  opacity: 0.08;
-}
-
-.icon {
+.medal {
   position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-}
-
-.earned .icon {
-  background: color-mix(in srgb, var(--color-heritage-brown) 14%, transparent);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-heritage-brown) 22%, transparent),
+    color-mix(in srgb, var(--color-heritage-brown) 10%, transparent)
+  );
   color: var(--color-heritage-brown);
+  border: 1.5px solid color-mix(in srgb, var(--color-heritage-brown) 45%, transparent);
 }
 
-.locked .icon {
-  background: var(--color-sand);
-  color: var(--color-disabled);
-}
-
-.body {
+.earnedBody {
   position: relative;
   min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.name {
-  /* 잠금 상태라도 칭호명 자체는 읽기 쉬운 톤을 쓴다 — 잠금 느낌은 아이콘/장식으로 충분히 전달됨 */
-  color: var(--color-secondary-text);
+.earnedTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.earnedName {
   font-weight: 700;
+  color: var(--color-heritage-brown);
   white-space: normal;
   overflow-wrap: break-word;
 }
 
-.earned .name {
-  color: var(--color-heritage-brown);
+.earnedBadge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-badge);
+  background: var(--color-heritage-brown);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.description {
+.earnedDescription {
+  color: var(--color-secondary-text);
+}
+
+.earnedDate {
+  color: var(--color-secondary-text);
+  opacity: 0.8;
+}
+
+/* ===== 미획득 칭호 — "목표 목록" 역할. 큰 자물쇠 대신 작은 상태 아이콘만,
+   flat하고 간결한 리스트 아이템으로 반복 스크롤 피로감을 줄인다. progress bar로
+   진행 상태를 한눈에. ===== */
+.lockedTile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-card);
+  background: var(--color-hanji-ivory);
+  border: 1px solid var(--color-sand);
+}
+
+.lockedTopRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.lockIcon {
+  flex-shrink: 0;
+  color: var(--color-disabled);
+}
+
+.lockedName {
+  min-width: 0;
+  font-weight: 600;
   color: var(--color-secondary-text);
   white-space: normal;
+  overflow-wrap: break-word;
 }
 
-.progress {
+.lockedDescription {
+  color: var(--color-disabled);
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: 2px;
+}
+
+.progressTrack {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  border-radius: var(--radius-badge);
+  background: var(--color-sand);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-heritage-brown);
+  border-radius: var(--radius-badge);
+}
+
+.progressText {
+  flex-shrink: 0;
   color: var(--color-secondary-text);
+  font-size: var(--font-size-caption);
   font-weight: 600;
-}
-
-.awardedAt {
-  color: var(--color-secondary-text);
-  opacity: 0.85;
 }
