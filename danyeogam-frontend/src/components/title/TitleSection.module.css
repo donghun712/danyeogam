@@ -25,53 +25,34 @@
   gap: var(--space-md);
 }
 
-/* ===== 획득 칭호 — "기념패" 역할. 확실히 특별하게 보이도록 무채색 톤에서
-   벗어나 heritage-brown 계열 배경/테두리를 쓰고, 기존 장식 에셋은 아주 옅은
-   워터마크(10%)로만 남긴다. ===== */
+/* ===== 획득 칭호 — "기념패" 역할. 요청서 P1-6 추가 확정: 반투명 전통 배경
+   워터마크는 완전히 제거하고, 실제 메달 에셋(title-medal.png)으로만 전통 포인트를
+   준다. 카드 자체는 heritage-brown 톤 배경/테두리로 특별함을 유지. ===== */
 .earnedTile {
-  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
   padding: var(--space-lg);
   border-radius: var(--radius-card);
-  overflow: hidden;
   background-color: color-mix(in srgb, var(--color-heritage-brown) 6%, var(--color-hanji-ivory));
   border: 1px solid color-mix(in srgb, var(--color-heritage-brown) 32%, var(--color-sand));
   box-shadow: var(--shadow-card);
 }
 
-.earnedTile::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/title-card-earned.png");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.1;
-  pointer-events: none;
-}
-
 .medal {
-  position: relative;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-heritage-brown) 22%, transparent),
-    color-mix(in srgb, var(--color-heritage-brown) 10%, transparent)
-  );
-  color: var(--color-heritage-brown);
-  border: 1.5px solid color-mix(in srgb, var(--color-heritage-brown) 45%, transparent);
+}
+
+.medalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .earnedBody {
-  position: relative;
   min-width: 0;
   flex: 1;
   display: flex;

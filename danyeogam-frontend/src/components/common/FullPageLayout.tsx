@@ -15,6 +15,13 @@ interface FullPageLayoutProps {
    * 인증 등)과 동일하게 항상 보이는 제목을 유지한다.
    */
   hideTitle?: boolean;
+  /**
+   * 요청서 P0-1 — 상세 페이지 Hero 전용 예외. 있으면 기존 아이보리 헤더 바
+   * (뒤로가기+제목+headerActions) 대신 이 hero를 최상단에 그대로 배치한다 —
+   * 뒤로가기/즐겨찾기/공유는 hero 컴포넌트 내부에서 사진 위 오버레이로 직접 그린다.
+   * title/headerActions는 이 경우 스크린리더 접근성 확인용으로만 남기고 화면엔 안 보인다.
+   */
+  hero?: ReactNode;
 }
 
 /**
@@ -26,8 +33,19 @@ export function FullPageLayout({
   children,
   headerActions,
   hideTitle = false,
+  hero,
 }: FullPageLayoutProps) {
   const navigate = useNavigate();
+
+  if (hero) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.srOnly}>{title}</h1>
+        {hero}
+        <main className={styles.main}>{children}</main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

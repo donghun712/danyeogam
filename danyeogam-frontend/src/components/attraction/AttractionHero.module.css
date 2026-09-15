@@ -1,0 +1,70 @@
+.hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--color-sand);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imageFallback {
+  width: 100%;
+  height: 100%;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* safe area(노치 등)를 고려하되 최소 여백은 보장 */
+  padding: max(var(--space-md), env(safe-area-inset-top)) var(--space-md) 0;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(41, 38, 33, 0.4);
+  color: #fff;
+  cursor: pointer;
+}
+
+.rightIcons {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.attribution {
+  position: absolute;
+  right: var(--space-sm);
+  bottom: var(--space-sm);
+  z-index: 5;
+  max-width: 70%;
+  padding: 2px 8px;
+  border-radius: var(--radius-badge);
+  background: rgba(41, 38, 33, 0.45);
+  color: #fff;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attribution a {
+  color: inherit;
+}

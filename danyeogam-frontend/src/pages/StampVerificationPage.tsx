@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FullPageLayout } from "@/components/common/FullPageLayout";
 import { Button } from "@/components/common/Button";
-import { Badge } from "@/components/common/Badge";
 import { StampSeal } from "@/components/stamp/StampSeal";
 import { StampRadar } from "@/components/stamp/StampRadar";
 import { StampMeasurementInfo } from "@/components/stamp/StampMeasurementInfo";
-import { AppIcon } from "@/constants/icons";
+import { TitleEarnedModal } from "@/components/title/TitleEarnedModal";
 import { useStampVerification } from "@/hooks/useStampVerification";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
 import { useCollectionSummary } from "@/hooks/useCollectionSummary";
@@ -109,6 +108,12 @@ export function StampVerificationPage() {
       ? titles.filter((title) => result.newTitleIds.includes(title.id))
       : [];
 
+  // 요청서 P1-7 — 새 칭호 획득이 확인되면(백엔드 newTitleIds 기준, 프론트 추측 없음)
+  // 축하 모달을 연다. useEffect+setState 대신 "이 result는 이미 닫았는지"만
+  // 추적해서 렌더링 중에 파생시킨다 — result가 바뀌면 자동으로 다시 열린다.
+  const [dismissedResult, setDismissedResult] = useState<typeof result>(null);
+  const titleModalOpen = newlyEarnedTitles.length > 0 && result !== dismissedResult;
+
   if (spotId === null) {
     return (
       <FullPageLayout title="스탬프 인증">
@@ -194,19 +199,6 @@ export function StampVerificationPage() {
                 </p>
               </div>
             )}
-            {newlyEarnedTitles.length > 0 && (
-              <div className={styles.newTitles}>
-                <p className="text-caption">새 칭호 획득!</p>
-                <div className={styles.newTitleBadges}>
-                  {newlyEarnedTitles.map((title) => (
-                    <Badge key={title.id} tone="brand">
-                      <AppIcon.title size={14} strokeWidth={2} aria-hidden="true" />
-                      {title.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
             <div className={styles.actions}>
               <Button onClick={() => navigate(ROUTES.collection)}>
                 도감에서 확인하기
@@ -222,19 +214,6 @@ export function StampVerificationPage() {
           <div className={styles.center}>
             <p className="text-h2">이미 방문한 관광지예요</p>
             <p className="text-body">이전에 스탬프를 획득했어요.</p>
-            {newlyEarnedTitles.length > 0 && (
-              <div className={styles.newTitles}>
-                <p className="text-caption">새 칭호 획득!</p>
-                <div className={styles.newTitleBadges}>
-                  {newlyEarnedTitles.map((title) => (
-                    <Badge key={title.id} tone="brand">
-                      <AppIcon.title size={14} strokeWidth={2} aria-hidden="true" />
-                      {title.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
             <Button variant="secondary" onClick={() => navigate(ROUTES.collection)}>
               도감에서 확인하기
             </Button>
@@ -292,6 +271,12 @@ export function StampVerificationPage() {
           </div>
         )}
       </div>
+
+      <TitleEarnedModal
+        open={titleModalOpen}
+        titles={newlyEarnedTitles}
+        onClose={() => setDismissedResult(result)}
+      />
     </FullPageLayout>
   );
 }

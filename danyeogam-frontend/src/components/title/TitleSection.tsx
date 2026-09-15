@@ -39,7 +39,7 @@ function EarnedTile({ title }: { title: Title }) {
   return (
     <div className={styles.earnedTile}>
       <div className={styles.medal}>
-        <AppIcon.title size={20} strokeWidth={2} aria-hidden="true" />
+        <img src="/title-medal.png" alt="" className={styles.medalImage} />
       </div>
       <div className={styles.earnedBody}>
         <div className={styles.earnedTopRow}>

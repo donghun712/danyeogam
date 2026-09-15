@@ -4,6 +4,7 @@ import {
   Baby,
   BookOpen,
   CalendarOff,
+  Check,
   Clock,
   ChevronDown,
   Globe,
@@ -49,4 +50,5 @@ export const AppIcon = {
   titleLocked: Lock,
   mapLegend: Info,
   noImage: ImageOff,
+  check: Check,
 } as const;

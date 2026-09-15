@@ -1,0 +1,27 @@
+.medal {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  display: block;
+}
+
+.titleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0 var(--space-lg);
+}
+
+.titleItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titleName {
+  color: var(--color-heritage-brown);
+}
+
+.titleDescription {
+  color: var(--color-secondary-text);
+}

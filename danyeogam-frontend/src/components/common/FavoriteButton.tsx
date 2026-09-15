@@ -7,6 +7,9 @@ interface FavoriteButtonProps {
   favorited: boolean;
   /** 바텀시트처럼 아이콘 옆에 글자도 보여주고 싶을 때. 상세 페이지 헤더에서는 안 쓴다(아이콘만). */
   showLabel?: boolean;
+  /** 요청서 — 상세 Hero처럼 사진 위에 얹을 때. 원형 반투명 배경 + 흰 아이콘으로,
+      어떤 사진 위에서도 식별 가능하게 한다. */
+  overlay?: boolean;
 }
 
 /** 좋아요+즐겨찾기를 하나로 합친 토글 버튼(백엔드 결정 사항, docs/frontend-favorites-api.md 참고). */
@@ -14,13 +17,14 @@ export function FavoriteButton({
   spotId,
   favorited: initialFavorited,
   showLabel = false,
+  overlay = false,
 }: FavoriteButtonProps) {
   const { favorited, isPending, toggle } = useFavorite(spotId, initialFavorited);
 
   return (
     <button
       type="button"
-      className={`${styles.button} ${showLabel ? styles.withLabel : ""} ${favorited ? styles.active : ""}`}
+      className={`${styles.button} ${showLabel ? styles.withLabel : ""} ${favorited ? styles.active : ""} ${overlay ? styles.overlay : ""}`}
       onClick={toggle}
       disabled={isPending}
       aria-pressed={favorited}

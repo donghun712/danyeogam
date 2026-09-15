@@ -1,4 +1,5 @@
 import { Card } from "@/components/common/Card";
+import { AppIcon } from "@/constants/icons";
 import type { CollectionItem } from "@/types/api";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import styles from "./CollectionCard.module.css";
@@ -16,6 +17,10 @@ interface CollectionCardProps {
  * 디자인 시스템 22장 Collection Card.
  * visitState는 서버 값을 그대로 사용한다 — "VISITED"가 아니면 전부 미방문으로 취급하고
  * 프론트에서 별도로 방문 여부를 추측하지 않는다.
+ * 요청서 P1-6 — 방문완료 카드는 사진이 주인공. 얇은 프레임(collection-card-visited-thin.png)
+ * 위에 사진을 꽉 채우고(object-fit: cover), 방문완료 상태는 작은 체크 배지로만 보조한다
+ * (기존 두꺼운 액자 구조 폐기). 미방문은 기존 수묵 placeholder 그대로 유지, 두 상태 모두
+ * 동일한 카드 shell(같은 aspect-ratio, 같은 클리핑)을 쓴다.
  */
 export function CollectionCard({ item, onSelect }: CollectionCardProps) {
   const visited = item.visitState === "VISITED";
@@ -32,7 +37,12 @@ export function CollectionCard({ item, onSelect }: CollectionCardProps) {
           className={visited ? styles.frameVisited : styles.frameUnvisited}
         >
           {visited && thumbnailUrl ? (
-            <img src={thumbnailUrl} alt={item.name} className={styles.image} />
+            <>
+              <img src={thumbnailUrl} alt={item.name} className={styles.image} />
+              <span className={styles.visitedBadge} aria-hidden="true">
+                <AppIcon.check size={12} strokeWidth={3} />
+              </span>
+            </>
           ) : (
             !visited && (
               <span className={styles.placeholderMark} aria-hidden="true">

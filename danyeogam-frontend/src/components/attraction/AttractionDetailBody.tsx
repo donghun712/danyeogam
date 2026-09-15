@@ -5,7 +5,6 @@ import { AppIcon } from "@/constants/icons";
 import type { TouristSpotDetail } from "@/types/api";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import { getVisitBadgeKind } from "@/utils/visitStatus";
-import { ImagePlaceholder } from "./ImagePlaceholder";
 import styles from "./AttractionDetailBody.module.css";
 
 interface AttractionDetailBodyProps {
@@ -20,41 +19,21 @@ interface AttractionDetailBodyProps {
  * 없어(개발 보고 D-1), 우선 완전히 동일한 상세 데이터를 보여준다. 액션 버튼 구성만
  * 화면별로 다르게 하고 싶어서 `actions` 슬롯으로 분리했다.
  */
+/**
+ * 화면시안 "03 관광지 상세 페이지" 본문.
+ * 요청서 P0-1 — 대표 사진과 뒤로가기/즐겨찾기/공유는 이제 AttractionHero가 사진
+ * 몰입형으로 그린다(제안서 2번 시안 예외 적용). 여기는 그 아래 본문(배지/제목/주소/
+ * 소개/운영정보/시설정보/액션)만 담당 — 1번 시안 기준 색/타이포/여백 유지.
+ */
 export function AttractionDetailBody({
   detail,
   actions,
 }: AttractionDetailBodyProps) {
-  const imageUrl = safeExternalHttpUrl(detail.images[0]?.url);
-  const imageSourceUrl = safeExternalHttpUrl(detail.images[0]?.sourcePageUrl);
   const homepageUrl = safeExternalHttpUrl(detail.homepageUrl);
   const visitBadge = getVisitBadgeKind(detail);
 
   return (
     <div className={styles.content}>
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={detail.images[0].alt}
-          className={styles.image}
-        />
-      ) : (
-        // 백엔드는 이미지가 없으면 빈 배열을 반환하므로(8.4절) 의도된 placeholder를 보여준다.
-        <div className={styles.imageFallback}>
-          <ImagePlaceholder />
-        </div>
-      )}
-      {imageUrl && detail.images[0]?.attribution && (
-        <p className={`text-caption ${styles.imageAttribution}`}>
-          {imageSourceUrl ? (
-            <a href={imageSourceUrl} target="_blank" rel="noreferrer noopener">
-              {detail.images[0].attribution}
-            </a>
-          ) : (
-            detail.images[0].attribution
-          )}
-        </p>
-      )}
-
       <div className={styles.badgeRow}>
         {visitBadge === "visited" && <Badge tone="success">✓ 방문 완료</Badge>}
         {visitBadge === "stampAvailable" && <Badge tone="brand">스탬프 가능</Badge>}

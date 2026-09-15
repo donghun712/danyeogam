@@ -30,7 +30,7 @@
   height: 64px;
   flex-shrink: 0;
   border-radius: var(--radius-input);
-  background: var(--color-sand);
+  overflow: hidden;
 }
 
 .body {

@@ -31,3 +31,16 @@
 .active {
   color: var(--color-heritage-brown);
 }
+
+.overlay {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  justify-content: center;
+  background: rgba(41, 38, 33, 0.4);
+  color: #fff;
+}
+
+.overlay.active {
+  color: #f2c879;
+}

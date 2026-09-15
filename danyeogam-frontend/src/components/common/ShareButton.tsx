@@ -6,13 +6,15 @@ interface ShareButtonProps {
   title: string;
   /** 공유할 URL. 안 넘기면 현재 페이지 주소를 쓴다. */
   url?: string;
+  /** 요청서 — 상세 Hero처럼 사진 위에 얹을 때. FavoriteButton과 같은 원형 반투명 배경. */
+  overlay?: boolean;
 }
 
 /**
  * 화면시안 헤더의 공유 아이콘. 새 데이터/저장소가 필요 없어서(즐겨찾기와 달리) 바로 구현했다.
  * Web Share API를 지원하면 OS 공유 시트를, 아니면 링크를 클립보드에 복사한다.
  */
-export function ShareButton({ title, url }: ShareButtonProps) {
+export function ShareButton({ title, url, overlay = false }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleClick = async () => {
@@ -39,7 +41,7 @@ export function ShareButton({ title, url }: ShareButtonProps) {
   return (
     <button
       type="button"
-      className={styles.button}
+      className={`${styles.button} ${overlay ? styles.overlay : ""}`}
       onClick={handleClick}
       aria-label="공유하기"
     >

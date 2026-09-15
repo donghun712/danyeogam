@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CollectionRegionSelector } from "@/components/collection/CollectionRegionSelector";
 import { CollectionSubRegionSelector } from "@/components/collection/CollectionSubRegionSelector";
 import { CollectionProgress } from "@/components/collection/CollectionProgress";
@@ -12,6 +13,8 @@ import { useCollectionSummary } from "@/hooks/useCollectionSummary";
 import { useCollectionList } from "@/hooks/useCollectionList";
 import styles from "./CollectionPage.module.css";
 
+const SCROLL_STORAGE_KEY = "danyeogam:collection-scroll";
+
 /**
  * SCREEN-COLLECTION — 나만의 팔도 도감 (P1).
  *
@@ -23,16 +26,55 @@ import styles from "./CollectionPage.module.css";
  * 그렇다 — 세종특별자치시처럼 하위 지역이 없는 경우는 자동으로 숨김) 2단계로 더 좁혀볼 수
  * 있다. `GET /me/collection/summary?parentRegionCode=...`를 재사용한다(백엔드 문서 참고).
  *
+ * 요청서 P0-2 — 선택한 시·도/시·군·구는 useState가 아니라 URL 쿼리 파라미터
+ * (?region=...&subRegion=...)로 관리한다. 관광지 상세로 이동했다가 뒤로가면 React
+ * Router가 이전 URL(쿼리 포함)로 정확히 복원해 주므로, 이 페이지가 언마운트/재마운트
+ * 되어도 선택 상태가 초기화되지 않는다 — 브라우저 자체 뒤로가기에서도 동일하게 동작.
+ * 스크롤 위치도 sessionStorage에 저장해두고 목록이 뜬 뒤 복원한다.
+ *
  * 칭호(Title)는 별도 탭(/titles, TitlePage)으로 분리했다 — 원래 이 화면 맨 아래
  * TitleSection으로 붙어 있었는데, 도감 카드 전체를 스크롤해야 보인다는 실제 테스트
  * 피드백을 받아 하단 탭 3번째로 옮겼다.
  */
 export function CollectionPage() {
   const summary = useCollectionSummary();
-  const [preferredRegionCode, setPreferredRegionCode] = useState<string | null>(
-    null,
+  const [searchParams, setSearchParams] = useSearchParams();
+  const preferredRegionCode = searchParams.get("region");
+  const preferredSubRegionCode = searchParams.get("subRegion");
+
+  const setPreferredRegionCode = useCallback(
+    (code: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("region", code);
+          // 광역이 바뀌면 이전 광역의 시군구 선택은 더 이상 유효하지 않다.
+          next.delete("subRegion");
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
-  // 요청서 4단계 — 도감 카드 클릭 시 지도 마커 클릭과 같은 관광지 Bottom Sheet를 재사용
+
+  const setPreferredSubRegionCode = useCallback(
+    (code: string | null) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (code) next.set("subRegion", code);
+          else next.delete("subRegion");
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  // 요청서 4단계 — 도감 카드 클릭 시 지도 마커 클릭과 같은 관광지 Bottom Sheet를 재사용.
+  // 이건 실제 페이지 이동이 아니라 이 화면 위에 뜨는 오버레이라 URL에 남길 필요는 없다.
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
 
   // 사용자가 고른 지역이 현재 요약에 있으면 유지하고, 최초 진입 또는 목록 변경 시에는
@@ -42,16 +84,6 @@ export function CollectionPage() {
   )
     ? preferredRegionCode
     : (summary.regions[0]?.code ?? null);
-
-  // 시군구 하위 진행률 — 광역이 바뀌면 하위 선택도 같이 초기화한다(effect 없이 렌더링 중 보정).
-  const [syncedProvinceCode, setSyncedProvinceCode] = useState(selectedRegionCode);
-  const [preferredSubRegionCode, setPreferredSubRegionCode] = useState<
-    string | null
-  >(null);
-  if (selectedRegionCode !== syncedProvinceCode) {
-    setSyncedProvinceCode(selectedRegionCode);
-    setPreferredSubRegionCode(null);
-  }
 
   const subSummary = useCollectionSummary(selectedRegionCode);
   // 백엔드 확인: 일부 시군구는 하위 구와 별도의 상위 코드로 DB에 존재하면서 실제 연결된
@@ -77,6 +109,26 @@ export function CollectionPage() {
   const effectiveSummary = selectedSubRegionCode
     ? subSummary.regions.find((region) => region.code === selectedSubRegionCode)
     : summary.regions.find((region) => region.code === selectedRegionCode);
+
+  // 요청서 P0-2 — 목록이 실제로 뜬 뒤 스크롤 위치를 복원하고, 화면을 떠날 때 저장한다.
+  const scrollRestored = useRef(false);
+  useEffect(() => {
+    if (list.status !== "success" || scrollRestored.current) return;
+    scrollRestored.current = true;
+    const main = document.querySelector("main");
+    const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+    if (main && saved) {
+      main.scrollTop = Number(saved);
+    }
+  }, [list.status]);
+
+  useEffect(() => {
+    const main = document.querySelector("main");
+    if (!main) return;
+    return () => {
+      sessionStorage.setItem(SCROLL_STORAGE_KEY, String(main.scrollTop));
+    };
+  }, []);
 
   return (
     <div className={styles.container}>
