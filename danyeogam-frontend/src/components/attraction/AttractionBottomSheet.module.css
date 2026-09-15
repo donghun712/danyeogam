@@ -4,5 +4,16 @@
 }
 
 .secondaryRow > * {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* 320px처럼 좁은 화면에서 버튼 3개가 한 줄에 들어갈 때, 버튼 기본 스타일의
+   white-space:nowrap 때문에 줄바꿈을 못 해서 넘치는 문제가 있었다 — 이 버튼
+   그룹 안에서만 줄바꿈을 허용해서 실제로 3등분되게 한다. */
+.secondaryRow button {
+  white-space: normal;
+  text-align: center;
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
 }

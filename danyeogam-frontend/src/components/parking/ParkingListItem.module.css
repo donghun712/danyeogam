@@ -1,14 +1,43 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
+  /* 요청서 7단계 — 기본 카드 패딩(16px)보다 살짝 줄여서 "지나치게 큰 흰 카드"
+     느낌을 완화 */
+  padding: var(--space-md);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--color-secondary-text);
 }
 
 .meta {
   color: var(--color-disabled);
 }
 
-.distance {
+.distanceBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-badge);
+  background: color-mix(in srgb, var(--color-heritage-brown) 12%, transparent);
   color: var(--color-heritage-brown);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: var(--font-size-caption);
 }

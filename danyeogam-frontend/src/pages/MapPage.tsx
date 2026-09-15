@@ -53,49 +53,49 @@ export function MapPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.brandHeader}>
-        <img src="/danyeogam-logo.png" alt="다녀감" className={styles.logo} />
-        {/* 요청서 2단계 — 즐겨찾기 재탐색 최소 진입점. 3단계에서 헤더 전체를
-            compact app bar로 다시 정리할 때 위치/스타일을 같이 다듬는다. */}
-        <button
-          type="button"
-          className={styles.favoritesEntry}
-          onClick={() => navigate(ROUTES.favorites)}
-          aria-label="즐겨찾기"
-        >
-          <AppIcon.favorite size={20} strokeWidth={2} aria-hidden="true" />
-        </button>
-      </div>
-
       <div className={styles.mapArea}>
-        <div className={styles.topControls}>
-          <div className={styles.addressBar}>
-            <AppIcon.location size={14} strokeWidth={2} aria-hidden="true" />
-            <span className={`text-caption ${styles.addressText}`}>
-              {address.status === "success" && address.addressName
-                ? address.addressName
-                : currentLocation.status === "permission_denied"
-                  ? "위치 권한이 필요해요"
-                  : currentLocation.status === "unavailable"
-                    ? "위치를 사용할 수 없어요"
-                    : currentLocation.status === "timeout"
-                      ? "위치 확인 시간이 초과됐어요"
-                      : currentLocation.status === "success" && address.status === "error"
-                        ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
-                        : "현재 위치 확인 중..."}
-            </span>
-          </div>
-
-          {sdkStatus === "ready" && (
+        <div className={styles.overlayHeader}>
+          <div className={styles.brandRow}>
+            <img src="/danyeogam-logo.png" alt="다녀감" className={styles.logo} />
             <button
               type="button"
-              className={styles.legendButton}
-              onClick={() => setLegendOpen(true)}
-              aria-label="지도상태 — 마커 안내"
+              className={styles.favoritesEntry}
+              onClick={() => navigate(ROUTES.favorites)}
+              aria-label="즐겨찾기"
             >
-              <AppIcon.mapLegend size={18} strokeWidth={2} aria-hidden="true" />
+              <AppIcon.favorite size={18} strokeWidth={2} aria-hidden="true" />
             </button>
-          )}
+          </div>
+
+          <div className={styles.topControls}>
+            <div className={styles.addressBar}>
+              <AppIcon.location size={14} strokeWidth={2} aria-hidden="true" />
+              <span className={`text-caption ${styles.addressText}`}>
+                {address.status === "success" && address.addressName
+                  ? address.addressName
+                  : currentLocation.status === "permission_denied"
+                    ? "위치 권한이 필요해요"
+                    : currentLocation.status === "unavailable"
+                      ? "위치를 사용할 수 없어요"
+                      : currentLocation.status === "timeout"
+                        ? "위치 확인 시간이 초과됐어요"
+                        : currentLocation.status === "success" && address.status === "error"
+                          ? "주소를 불러오지 못했어요" // MAP-02 Partial Error: 위치는 확보했지만 역지오코딩만 실패한 경우
+                          : "현재 위치 확인 중..."}
+              </span>
+            </div>
+
+            {sdkStatus === "ready" && (
+              <button
+                type="button"
+                className={styles.legendButton}
+                onClick={() => setLegendOpen(true)}
+                aria-label="지도상태 — 마커 안내"
+              >
+                <AppIcon.mapLegend size={18} strokeWidth={2} aria-hidden="true" />
+              </button>
+            )}
+          </div>
         </div>
 
         {sdkStatus === "error" && (

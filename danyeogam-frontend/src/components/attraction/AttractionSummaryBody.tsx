@@ -5,6 +5,7 @@ import { AppIcon } from "@/constants/icons";
 import { useNearbyParking } from "@/hooks/useNearbyParking";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import { getVisitBadgeKind } from "@/utils/visitStatus";
+import { firstSentence } from "@/utils/text";
 import type { TouristSpotDetail } from "@/types/api";
 import styles from "./AttractionSummaryBody.module.css";
 
@@ -62,7 +63,9 @@ export function AttractionSummaryBody({
       )}
 
       {detail.overview && (
-        <p className={`text-body ${styles.summary}`}>{detail.overview}</p>
+        // 요청서 2단계 — 여러 줄 line-clamp로 문장 중간에서 끊지 않고, 첫 번째
+        // 완전한 문장만 보여준다(원문 그대로 자르기, 재작성 없음).
+        <p className={`text-body ${styles.summary}`}>{firstSentence(detail.overview)}</p>
       )}
 
       {nearestParking && (

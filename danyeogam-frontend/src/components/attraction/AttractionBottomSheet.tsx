@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "@/components/common/BottomSheet";
 import { Button } from "@/components/common/Button";
 import { NavigationButton } from "@/components/common/NavigationButton";
+import { AppIcon } from "@/constants/icons";
 import { useAttractionDetail } from "@/hooks/useAttractionDetail";
 import { shouldShowStampCta } from "@/utils/visitStatus";
 import { ROUTES } from "@/constants/routes";
@@ -57,24 +58,25 @@ export function AttractionBottomSheet({
         <AttractionSummaryBody
           detail={detail}
           secondaryActions={
-            <>
+            // 요청서 2단계 — "상세 보기" 텍스트 링크가 버튼인지 애매하다는 지적.
+            // 3개를 동일한 시각적 무게의 버튼 그룹으로 통일한다.
+            <div className={styles.secondaryRow}>
               <Button
-                variant="ghost"
-                fullWidth
+                variant="secondary"
                 onClick={() => navigate(ROUTES.attractionDetail(detail.id))}
               >
-                상세 보기
+                <AppIcon.mapLegend size={16} strokeWidth={2} aria-hidden="true" />
+                상세 정보
               </Button>
-              <div className={styles.secondaryRow}>
-                <NavigationButton navigation={detail.navigation} />
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(ROUTES.attractionParking(detail.id))}
-                >
-                  주차장 보기
-                </Button>
-              </div>
-            </>
+              <NavigationButton navigation={detail.navigation} />
+              <Button
+                variant="secondary"
+                onClick={() => navigate(ROUTES.attractionParking(detail.id))}
+              >
+                <AppIcon.parking size={16} strokeWidth={2} aria-hidden="true" />
+                주차장 보기
+              </Button>
+            </div>
           }
         />
       )}

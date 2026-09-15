@@ -28,8 +28,10 @@ export function FavoriteListItem({ item }: FavoriteListItemProps) {
         )}
         <div className={styles.body}>
           <p className="text-body">{item.name}</p>
-          {visited && (
+          {visited ? (
             <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>
+          ) : (
+            <p className={`text-caption ${styles.unvisited}`}>아직 미방문</p>
           )}
         </div>
       </Card>

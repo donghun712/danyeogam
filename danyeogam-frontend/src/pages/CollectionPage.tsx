@@ -3,6 +3,7 @@ import { CollectionRegionSelector } from "@/components/collection/CollectionRegi
 import { CollectionSubRegionSelector } from "@/components/collection/CollectionSubRegionSelector";
 import { CollectionProgress } from "@/components/collection/CollectionProgress";
 import { CollectionCard } from "@/components/collection/CollectionCard";
+import { AttractionBottomSheet } from "@/components/attraction/AttractionBottomSheet";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Skeleton } from "@/components/common/Skeleton";
@@ -31,6 +32,8 @@ export function CollectionPage() {
   const [preferredRegionCode, setPreferredRegionCode] = useState<string | null>(
     null,
   );
+  // 요청서 4단계 — 도감 카드 클릭 시 지도 마커 클릭과 같은 관광지 Bottom Sheet를 재사용
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
 
   // 사용자가 고른 지역이 현재 요약에 있으면 유지하고, 최초 진입 또는 목록 변경 시에는
   // API가 반환한 첫 지역을 렌더링 단계에서 기본값으로 사용한다.
@@ -148,12 +151,21 @@ export function CollectionPage() {
           {list.items.length > 0 && (
             <div className={styles.grid}>
               {list.items.map((item) => (
-                <CollectionCard key={item.touristSpotId} item={item} />
+                <CollectionCard
+                  key={item.touristSpotId}
+                  item={item}
+                  onSelect={setSelectedSpotId}
+                />
               ))}
             </div>
           )}
         </>
       )}
+
+      <AttractionBottomSheet
+        spotId={selectedSpotId}
+        onClose={() => setSelectedSpotId(null)}
+      />
     </div>
   );
 }

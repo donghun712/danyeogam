@@ -43,3 +43,7 @@
 .visited {
   color: var(--color-success);
 }
+
+.unvisited {
+  color: var(--color-disabled);
+}

@@ -5,6 +5,11 @@ import styles from "./CollectionCard.module.css";
 
 interface CollectionCardProps {
   item: CollectionItem;
+  /**
+   * 요청서 4단계 — 도감 카드를 눌렀을 때 지도 마커 클릭과 동일한 관광지 정보 흐름
+   * (AttractionBottomSheet)을 재사용한다. 새 상세 UI를 만들지 않는다.
+   */
+  onSelect: (touristSpotId: number) => void;
 }
 
 /**
@@ -12,33 +17,39 @@ interface CollectionCardProps {
  * visitState는 서버 값을 그대로 사용한다 — "VISITED"가 아니면 전부 미방문으로 취급하고
  * 프론트에서 별도로 방문 여부를 추측하지 않는다.
  */
-export function CollectionCard({ item }: CollectionCardProps) {
+export function CollectionCard({ item, onSelect }: CollectionCardProps) {
   const visited = item.visitState === "VISITED";
   const thumbnailUrl = safeExternalHttpUrl(item.thumbnailUrl);
 
   return (
-    <Card padded={false} className={styles.card}>
-      <div
-        className={visited ? styles.frameVisited : styles.frameUnvisited}
-      >
-        {visited && thumbnailUrl ? (
-          <img src={thumbnailUrl} alt={item.name} className={styles.image} />
-        ) : (
-          !visited && (
-            <span className={styles.placeholderMark} aria-hidden="true">
-              ?
-            </span>
-          )
-        )}
-      </div>
-      <div className={styles.footer}>
-        <p className="text-caption">{item.name}</p>
-        {visited ? (
-          <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>
-        ) : (
-          <p className={`text-caption ${styles.unvisitedLabel}`}>아직 미방문</p>
-        )}
-      </div>
-    </Card>
+    <button
+      type="button"
+      className={styles.button}
+      onClick={() => onSelect(item.touristSpotId)}
+    >
+      <Card padded={false} className={styles.card}>
+        <div
+          className={visited ? styles.frameVisited : styles.frameUnvisited}
+        >
+          {visited && thumbnailUrl ? (
+            <img src={thumbnailUrl} alt={item.name} className={styles.image} />
+          ) : (
+            !visited && (
+              <span className={styles.placeholderMark} aria-hidden="true">
+                ?
+              </span>
+            )
+          )}
+        </div>
+        <div className={styles.footer}>
+          <p className="text-caption">{item.name}</p>
+          {visited ? (
+            <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>
+          ) : (
+            <p className={`text-caption ${styles.unvisitedLabel}`}>아직 미방문</p>
+          )}
+        </div>
+      </Card>
+    </button>
   );
 }
