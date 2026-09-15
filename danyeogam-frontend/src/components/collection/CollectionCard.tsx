@@ -32,8 +32,12 @@ export function CollectionCard({ item }: CollectionCardProps) {
         )}
       </div>
       <div className={styles.footer}>
-        <p className="text-caption">{visited ? item.name : "아직 미방문"}</p>
-        {visited && <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>}
+        <p className="text-caption">{item.name}</p>
+        {visited ? (
+          <p className={`text-caption ${styles.visited}`}>✓ 방문완료</p>
+        ) : (
+          <p className={`text-caption ${styles.unvisitedLabel}`}>아직 미방문</p>
+        )}
       </div>
     </Card>
   );

@@ -27,6 +27,21 @@
   margin-bottom: var(--space-sm);
 }
 
+/* 요청서: 큰 제목은 스크롤되고 지역 선택+진행률만 compact sticky로 상단 고정 */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-md);
+  /* sticky 상태에서 카드 그리드가 뒤로 비치지 않도록 페이지와 같은 톤의 배경을 깐다.
+     텍스처까지 완벽히 이어붙이기보다 단색으로 확실히 가리는 쪽을 택함. */
+  background: var(--color-hanji-ivory);
+  margin: 0 calc(-1 * var(--space-screen-padding-x));
+  padding-left: var(--space-screen-padding-x);
+  padding-right: var(--space-screen-padding-x);
+}
+
 .loading {
   display: flex;
   flex-direction: column;

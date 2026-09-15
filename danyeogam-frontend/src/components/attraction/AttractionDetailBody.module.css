@@ -41,7 +41,7 @@
 }
 
 .sectionTitle {
-  margin: 0;
+  margin: var(--space-sm) 0 0;
   color: var(--color-ink);
 }
 

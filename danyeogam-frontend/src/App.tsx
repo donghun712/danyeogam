@@ -7,6 +7,7 @@ import { TitlePage } from "@/pages/TitlePage";
 import { AttractionDetailPage } from "@/pages/AttractionDetailPage";
 import { ParkingListPage } from "@/pages/ParkingListPage";
 import { StampVerificationPage } from "@/pages/StampVerificationPage";
+import { FavoritesPage } from "@/pages/FavoritesPage";
 import { createOrReuseAnonymousSession } from "@/api/sessionApi";
 
 export function App() {
@@ -37,6 +38,7 @@ export function App() {
         path="/attractions/:attractionId/stamp"
         element={<StampVerificationPage />}
       />
+      <Route path="/favorites" element={<FavoritesPage />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,0 +1,45 @@
+.button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm);
+}
+
+.image {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius-input);
+  object-fit: cover;
+}
+
+.imageFallback {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius-input);
+  background: var(--color-sand);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.visited {
+  color: var(--color-success);
+}

@@ -13,9 +13,12 @@
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  /* 프레임 이미지(collection-card-visited.png)의 실제 투명 구멍 위치를 픽셀 단위로
-     측정해서 맞춘 값이다 — 대략치가 아니라 실측값. */
-  padding: 20% 17% 24% 13%;
+  /* 프레임 이미지의 실제 투명 구멍은 좌13/우17/상20/하24%로 비대칭이다(액자 자체의
+     디자인 — 하단·우측 매트가 더 두꺼운 스타일). 그 값 그대로 쓰면 사진이 한쪽으로
+     치우쳐 보인다는 피드백이 있어, 사진 자체는 대칭 여백(가로 15%, 세로 22%)으로
+     중앙에 배치한다 — 프레임 장식과 사진 가장자리가 아주 살짝 겹치는 것이, 사진이
+     비대칭으로 보이는 것보다 낫다는 판단. */
+  padding: 22% 15%;
   box-sizing: border-box;
   background-image: url("/collection-card-visited.png");
   background-size: 100% 100%;
@@ -51,6 +54,18 @@
   border-top: 1px solid var(--color-sand);
 }
 
+.footer p:first-child {
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .visited {
   color: var(--color-success);
+}
+
+.unvisitedLabel {
+  color: var(--color-disabled);
 }

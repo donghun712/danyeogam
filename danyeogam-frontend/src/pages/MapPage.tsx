@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/map/MapView";
 import { MapLegendSheet } from "@/components/map/MapLegendSheet";
 import { AttractionBottomSheet } from "@/components/attraction/AttractionBottomSheet";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { AppIcon } from "@/constants/icons";
+import { ROUTES } from "@/constants/routes";
 import { useKakaoMapsSdk } from "@/hooks/useKakaoMapsSdk";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
 import { useCurrentAddress } from "@/hooks/useCurrentAddress";
@@ -24,6 +26,7 @@ const BOUNDS_ERROR_MESSAGE: Record<string, string> = {
  * 마커/클러스터링 → 마커 선택 → Bottom Sheet, 그리고 Loading/Empty/Error/Partial Error.
  */
 export function MapPage() {
+  const navigate = useNavigate();
   const sdkStatus = useKakaoMapsSdk();
   const currentLocation = useCurrentLocation();
   const [bounds, setBounds] = useState<MapBounds | null>(null);
@@ -52,6 +55,16 @@ export function MapPage() {
     <div className={styles.container}>
       <div className={styles.brandHeader}>
         <img src="/danyeogam-logo.png" alt="다녀감" className={styles.logo} />
+        {/* 요청서 2단계 — 즐겨찾기 재탐색 최소 진입점. 3단계에서 헤더 전체를
+            compact app bar로 다시 정리할 때 위치/스타일을 같이 다듬는다. */}
+        <button
+          type="button"
+          className={styles.favoritesEntry}
+          onClick={() => navigate(ROUTES.favorites)}
+          aria-label="즐겨찾기"
+        >
+          <AppIcon.favorite size={20} strokeWidth={2} aria-hidden="true" />
+        </button>
       </div>
 
       <div className={styles.mapArea}>
