@@ -15,7 +15,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-image);
-  background: var(--color-sand);
+  overflow: hidden;
 }
 
 .badgeRow {
@@ -54,22 +54,32 @@
 
 .metaRow {
   display: flex;
-  align-items: baseline;
+  /* 요청서 6단계 핵심 수정 — baseline/center 정렬이면 값이 여러 줄일 때 아이콘이
+     row 전체 높이의 중앙으로 떠버려서 라벨/값과 어긋나 보였다. flex-start로
+     통일해서 아이콘/라벨은 항상 첫 줄 기준 상단에, 값만 자연스럽게 여러 줄로
+     흐르게 한다. 운영시간/휴무일/전화/홈페이지 전부 이 하나의 규칙만 쓴다 —
+     필드별 개별 CSS 없음. */
+  align-items: flex-start;
   gap: var(--space-sm);
 }
 
 .metaIcon {
   flex-shrink: 0;
-  align-self: center;
+  /* 아이콘(16px)의 세로 중심을 라벨 텍스트 첫 줄의 세로 중심과 맞추기 위한
+     미세 보정 — 값이 몇 줄이 되든 이 값은 항상 고정이라 흔들리지 않는다. */
+  margin-top: 2px;
   color: var(--color-disabled);
 }
 
 .metaRow dt {
+  flex-shrink: 0;
   color: var(--color-disabled);
   min-width: 56px;
 }
 
 .metaRow dd {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   word-break: break-all;
 }

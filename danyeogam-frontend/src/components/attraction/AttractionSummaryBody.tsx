@@ -6,6 +6,7 @@ import { useNearbyParking } from "@/hooks/useNearbyParking";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import { getVisitBadgeKind } from "@/utils/visitStatus";
 import { firstSentence } from "@/utils/text";
+import { ImagePlaceholder } from "./ImagePlaceholder";
 import type { TouristSpotDetail } from "@/types/api";
 import styles from "./AttractionSummaryBody.module.css";
 
@@ -47,7 +48,9 @@ export function AttractionSummaryBody({
           className={styles.image}
         />
       ) : (
-        <div className={styles.imageFallback} aria-hidden="true" />
+        <div className={styles.imageFallback}>
+          <ImagePlaceholder />
+        </div>
       )}
 
       <div className={styles.badgeRow}>

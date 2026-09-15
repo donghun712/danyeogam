@@ -5,6 +5,7 @@ import { AppIcon } from "@/constants/icons";
 import type { TouristSpotDetail } from "@/types/api";
 import { safeExternalHttpUrl } from "@/utils/safeExternalUrl";
 import { getVisitBadgeKind } from "@/utils/visitStatus";
+import { ImagePlaceholder } from "./ImagePlaceholder";
 import styles from "./AttractionDetailBody.module.css";
 
 interface AttractionDetailBodyProps {
@@ -36,8 +37,10 @@ export function AttractionDetailBody({
           className={styles.image}
         />
       ) : (
-        // 백엔드는 이미지가 없으면 빈 배열을 반환하므로(8.4절) 프론트가 기본 이미지를 대신 채운다.
-        <div className={styles.imageFallback} aria-hidden="true" />
+        // 백엔드는 이미지가 없으면 빈 배열을 반환하므로(8.4절) 의도된 placeholder를 보여준다.
+        <div className={styles.imageFallback}>
+          <ImagePlaceholder />
+        </div>
       )}
 
       <div className={styles.badgeRow}>
