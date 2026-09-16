@@ -22,6 +22,14 @@ interface MapViewProps {
    * 이 값을 1씩 증가시킨다.
    */
   recenterSignal: number;
+  /**
+   * 후속 요청서 1단계 — "현재 위치" 버튼을 카카오 기본 ZoomControl 바로 위, 같은
+   * 우측 축으로 정렬해야 하는데, ZoomControl은 SDK가 직접 렌더링해서 정확한 크기/
+   * 위치를 고정 px로 짐작할 수 없다(SDK 버전에 따라 달라질 수 있음). 그래서 실제
+   * 렌더링된 컨트롤의 위치를 런타임에 측정해서 이 콜백으로 부모에 전달한다 —
+   * 측정 실패 시(구조를 못 찾음) null을 전달해 부모가 기존 고정값으로 폴백한다.
+   */
+  onZoomControlRect: (rect: { right: number; top: number } | null) => void;
 }
 
 const DEFAULT_CENTER = { latitude: 35.8242, longitude: 127.148 }; // 전주 한옥마을 인근 — 최초 진입 시 GPS 확보 전 기본 좌표
@@ -67,6 +75,7 @@ export function MapView({
   onSelectSpot,
   selectedSpotId,
   recenterSignal,
+  onZoomControlRect,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
@@ -80,6 +89,7 @@ export function MapView({
   const resizeFrameRef = useRef<number | null>(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   const onSelectSpotRef = useRef(onSelectSpot);
+  const onZoomControlRectRef = useRef(onZoomControlRect);
   const lastRecenterSignalRef = useRef(recenterSignal);
 
   // 렌더링 중에는 ref를 쓰지 않고, 콜백이 바뀔 때만 이펙트에서 최신 값을 동기화한다.
@@ -89,10 +99,14 @@ export function MapView({
   useEffect(() => {
     onSelectSpotRef.current = onSelectSpot;
   }, [onSelectSpot]);
+  useEffect(() => {
+    onZoomControlRectRef.current = onZoomControlRect;
+  }, [onZoomControlRect]);
 
   // 지도 최초 생성 — 한 번만 실행
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    const container = containerRef.current;
 
     const savedState = readSavedMapState();
     const initialCenter = savedState
@@ -100,7 +114,7 @@ export function MapView({
       : DEFAULT_CENTER;
     const initialLevel = savedState ? savedState.level : DEFAULT_LEVEL;
 
-    const map = new kakao.maps.Map(containerRef.current, {
+    const map = new kakao.maps.Map(container, {
       center: new kakao.maps.LatLng(
         initialCenter.latitude,
         initialCenter.longitude,
@@ -120,6 +134,39 @@ export function MapView({
       new kakao.maps.ZoomControl(),
       kakao.maps.ControlPosition.BOTTOMRIGHT,
     );
+
+    // 후속 요청서 1단계 — ZoomControl은 SDK가 직접 DOM을 그려서 정확한 크기/위치를
+    // 고정 px로 짐작할 수 없다. 실제 렌더링된 컨트롤을 찾아 지도 컨테이너 기준
+    // 상대 좌표(right, top)로 변환해 부모에 전달한다 — "현재 위치" 버튼이 그 바로
+    // 위, 같은 우측 축에 정렬되도록. 카카오 컨트롤 고유 클래스명이 공식 문서에
+    // 없어서, "작고(<=60px 폭) 세로로 긴(40~150px 높이) absolute 배치된 컨테이너"
+    // 라는 형태적 특징으로 찾는다 — 못 찾으면 null을 전달해 부모가 기존 고정값으로
+    // 안전하게 폴백한다.
+    const measureZoomControl = () => {
+      const candidates = container.querySelectorAll("img");
+      for (const img of Array.from(candidates)) {
+        const parent = img.parentElement;
+        if (!parent) continue;
+        const rect = parent.getBoundingClientRect();
+        const looksLikeZoomControl =
+          rect.width > 0 &&
+          rect.width <= 60 &&
+          rect.height >= 40 &&
+          rect.height <= 150;
+        if (looksLikeZoomControl) {
+          const containerRect = container.getBoundingClientRect();
+          onZoomControlRectRef.current({
+            right: containerRect.right - rect.right,
+            top: rect.top - containerRect.top,
+          });
+          return;
+        }
+      }
+      onZoomControlRectRef.current(null);
+    };
+    // 컨트롤이 실제로 DOM에 그려질 시간을 한 프레임 준다.
+    const measureFrame = window.requestAnimationFrame(measureZoomControl);
+    window.addEventListener("resize", measureZoomControl);
 
     clustererRef.current = new kakao.maps.MarkerClusterer({
       map,
@@ -176,6 +223,8 @@ export function MapView({
       if (debounceTimerRef.current !== null) {
         window.clearTimeout(debounceTimerRef.current);
       }
+      window.cancelAnimationFrame(measureFrame);
+      window.removeEventListener("resize", measureZoomControl);
     };
   }, []);
 
