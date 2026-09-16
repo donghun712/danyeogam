@@ -33,6 +33,8 @@ export function MapPage() {
   const { status, spots, errorCode, retry } = useAttractionsInBounds(bounds);
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
+  // 요청서 4단계 — "현재 위치" 버튼을 누를 때마다 1씩 증가시켜 MapView에 신호를 보낸다.
+  const [recenterSignal, setRecenterSignal] = useState(0);
 
   const latitude = currentLocation.position?.coords.latitude ?? null;
   const longitude = currentLocation.position?.coords.longitude ?? null;
@@ -114,7 +116,24 @@ export function MapPage() {
             spots={spots}
             onBoundsChange={setBounds}
             onSelectSpot={setSelectedSpotId}
+            selectedSpotId={selectedSpotId}
+            recenterSignal={recenterSignal}
           />
+        )}
+
+        {/* 요청서 4단계 — 지도 탐색 위치를 유지하게 바꾸면서, 사용자가 원할 때 GPS
+            현재 위치로 돌아갈 수 있는 명확한 수단이 필요해져 추가한 버튼. 기존
+            줌 컨트롤(우측 하단) 위쪽에 같은 톤으로 배치한다. */}
+        {sdkStatus === "ready" && (
+          <button
+            type="button"
+            className={styles.recenterButton}
+            onClick={() => setRecenterSignal((prev) => prev + 1)}
+            aria-label="현재 위치로 이동"
+            disabled={!currentPosition}
+          >
+            <AppIcon.currentLocation size={20} strokeWidth={2} aria-hidden="true" />
+          </button>
         )}
 
         {sdkStatus === "ready" && status === "loading" && spots.length === 0 && (

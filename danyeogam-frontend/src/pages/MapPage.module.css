@@ -9,7 +9,12 @@
 
 /* 요청서 1단계 — 지도 상단 전면 재설계. 로고/즐겨찾기/주소/지도상태를 별도의
    아이보리 띠가 아니라 전부 지도 위에 떠 있는 오버레이로 배치한다. 지도가 화면
-   최상단부터 꽉 채우고, 그 위에 이 오버레이 헤더가 얹힌다. */
+   최상단부터 꽉 채우고, 그 위에 이 오버레이 헤더가 얹힌다.
+   요청서(출시 전) 5단계 — 완전 투명이면 복잡한 지도(도로선/POI/지명)와 겹쳐서
+   가독성이 떨어진다는 지적. 큰 고정 아이보리 헤더를 다시 만드는 대신, 얇은 반투명
+   배경(Hanji Ivory, opacity 0.88) + blur로 "하나의 상단 overlay 띠"를 준다.
+   backdrop-filter 미지원 브라우저에서도 텍스트가 읽히도록 배경 자체의 불투명도를
+   충분히 높게 잡았다(blur는 보조 효과일 뿐 필수가 아님). */
 .overlayHeader {
   position: absolute;
   top: 0;
@@ -19,7 +24,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: var(--space-md) var(--space-screen-padding-x);
+  padding: max(var(--space-md), env(safe-area-inset-top)) var(--space-screen-padding-x)
+    var(--space-md);
+  background: rgba(247, 243, 234, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .brandRow {
@@ -132,4 +141,31 @@
   justify-content: center;
   padding: var(--space-lg);
   color: var(--color-disabled);
+}
+
+/* 요청서(출시 전) 4단계 — 지도 탐색 위치를 유지하게 바뀌면서 필요해진 GPS 복귀 버튼.
+   카카오맵 기본 ZoomControl(우측 하단)과 겹치지 않도록 그 위쪽에 배치 — 정확한
+   ZoomControl 높이는 SDK가 직접 렌더링해 이 환경에서 실측하지 못했고, 기존
+   overlayBottom 여백(76px) 기준으로 넉넉히 잡은 값이라 실기기 확인이 필요하다. */
+.recenterButton {
+  position: absolute;
+  right: var(--space-lg);
+  bottom: 130px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-hanji-ivory);
+  border: none;
+  color: var(--color-heritage-brown);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.recenterButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

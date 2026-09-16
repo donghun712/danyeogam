@@ -29,9 +29,15 @@ function buildPinMarkerSvg(
   fillColor: string,
   accentColor: string,
   visited: boolean,
+  selected: boolean,
 ): string {
   const checkmark = visited
     ? `<path d="M11 14.2 L13.3 16.5 L17.3 11.2" fill="none" stroke="${fillColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`
+    : "";
+  // 요청서 1.3 — 선택 시 상태색을 다른 색으로 덮어쓰지 않고, 얇은 외곽 링 + 약한 scale
+  // 증가로만 강조한다(핀 자체 색/체크마크는 그대로 유지).
+  const ring = selected
+    ? `<path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="none" stroke="${accentColor}" stroke-width="2.5" />`
     : "";
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${PIN_WIDTH}" height="${PIN_HEIGHT}" viewBox="0 0 ${PIN_WIDTH} ${PIN_HEIGHT}">
@@ -41,17 +47,22 @@ function buildPinMarkerSvg(
       />
       <circle cx="14" cy="14" r="5.5" fill="${accentColor}" />
       ${checkmark}
+      ${ring}
     </svg>
   `.trim();
 }
 
 /** 테두리만 있는 작은 원 — 일반(스탬프 대상 아닌) 관광지용, 화면시안 범례의 옅은 원형과 맞춘다. */
-function buildOutlineDotSvg(strokeColor: string, fillColor: string): string {
+function buildOutlineDotSvg(strokeColor: string, fillColor: string, selected: boolean): string {
   const r = DOT_SIZE / 2 - 2;
   const c = DOT_SIZE / 2;
+  const selectedRing = selected
+    ? `<circle cx="${c}" cy="${c}" r="${r + 3}" fill="none" stroke="${strokeColor}" stroke-width="1.5" />`
+    : "";
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${DOT_SIZE}" height="${DOT_SIZE}" viewBox="0 0 ${DOT_SIZE} ${DOT_SIZE}">
       <circle cx="${c}" cy="${c}" r="${r}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2" />
+      ${selectedRing}
     </svg>
   `.trim();
 }
@@ -65,9 +76,11 @@ export type AttractionMarkerVariant = "stamp" | "stamp-visited" | "general";
 /**
  * kakao.maps.MarkerImage를 생성한다. 카카오 SDK가 로드된 뒤(useKakaoMapsSdk "ready")에만
  * 호출해야 한다 — kakao.maps 네임스페이스가 그 전에는 존재하지 않는다.
+ * 요청서 1.3 — selected는 상태색을 덮어쓰지 않고 얇은 외곽 링만 추가한다.
  */
 export function createAttractionMarkerImage(
   variant: AttractionMarkerVariant,
+  selected = false,
 ): kakao.maps.MarkerImage {
   const heritageBrown = getCssVar("--color-heritage-brown") || "#8A4F2A";
   const success = getCssVar("--color-success") || "#5F7D57";
@@ -76,7 +89,7 @@ export function createAttractionMarkerImage(
 
   if (variant === "general") {
     return new kakao.maps.MarkerImage(
-      toDataUri(buildOutlineDotSvg(disabled, ivory)),
+      toDataUri(buildOutlineDotSvg(disabled, ivory, selected)),
       new kakao.maps.Size(DOT_SIZE, DOT_SIZE),
       { offset: new kakao.maps.Point(DOT_SIZE / 2, DOT_SIZE / 2) },
     );
@@ -84,7 +97,7 @@ export function createAttractionMarkerImage(
 
   const fillColor = variant === "stamp-visited" ? success : heritageBrown;
   return new kakao.maps.MarkerImage(
-    toDataUri(buildPinMarkerSvg(fillColor, ivory, variant === "stamp-visited")),
+    toDataUri(buildPinMarkerSvg(fillColor, ivory, variant === "stamp-visited", selected)),
     new kakao.maps.Size(PIN_WIDTH, PIN_HEIGHT),
     { offset: new kakao.maps.Point(PIN_WIDTH / 2, PIN_HEIGHT) }, // 핀 끝(뾰족한 부분)이 실제 좌표
   );

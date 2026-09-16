@@ -14,10 +14,47 @@ interface MapViewProps {
   spots: MapSpot[];
   onBoundsChange: (bounds: MapBounds) => void;
   onSelectSpot: (spotId: number) => void;
+  /** 요청서 1.3 — Bottom Sheet가 열린 장소의 마커를 얇은 외곽 링으로 강조한다. */
+  selectedSpotId: number | null;
+  /**
+   * 요청서 4단계 — "현재 위치" 버튼을 누르면 이 값이 바뀌어 그 순간의 currentPosition으로
+   * 지도 중심을 이동한다. 0(초기값)에서는 아무 것도 안 하고, 버튼을 누를 때마다 부모가
+   * 이 값을 1씩 증가시킨다.
+   */
+  recenterSignal: number;
 }
 
 const DEFAULT_CENTER = { latitude: 35.8242, longitude: 127.148 }; // 전주 한옥마을 인근 — 최초 진입 시 GPS 확보 전 기본 좌표
 const DEFAULT_LEVEL = 5;
+
+// 요청서 3단계 — 상세 진입 후 뒤로가기 시 복원할 최소 지도 상태(center + level).
+// 새 상태 관리 라이브러리 없이 sessionStorage만 사용 — 새로고침 후 영구 유지는 요구되지
+// 않았고, 브라우저 뒤로가기(탭 유지) 동안만 살아있으면 된다.
+const MAP_STATE_STORAGE_KEY = "danyeogam:map-view-state";
+
+interface SavedMapState {
+  lat: number;
+  lng: number;
+  level: number;
+}
+
+function readSavedMapState(): SavedMapState | null {
+  try {
+    const raw = sessionStorage.getItem(MAP_STATE_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SavedMapState>;
+    if (
+      typeof parsed.lat !== "number" ||
+      typeof parsed.lng !== "number" ||
+      typeof parsed.level !== "number"
+    ) {
+      return null;
+    }
+    return { lat: parsed.lat, lng: parsed.lng, level: parsed.level };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * 카카오맵 인스턴스 자체는 React 상태로 관리하지 않고 ref에 보관한다(SDK가 명령형 API이기 때문).
@@ -28,17 +65,22 @@ export function MapView({
   spots,
   onBoundsChange,
   onSelectSpot,
+  selectedSpotId,
+  recenterSignal,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
   const clustererRef = useRef<kakao.maps.MarkerClusterer | null>(null);
   const markersRef = useRef<kakao.maps.Marker[]>([]);
   const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
+  // 요청서 3.5 — 복원된 지도 상태가 있으면 이 값을 true로 미리 설정해서, 최초 GPS
+  // 확보 effect가 복원 위치를 덮어쓰지 않게 한다("복원 상태 있음 -> GPS recenter 안 함").
   const hasCenteredOnGpsRef = useRef(false);
   const debounceTimerRef = useRef<number | null>(null);
   const resizeFrameRef = useRef<number | null>(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   const onSelectSpotRef = useRef(onSelectSpot);
+  const lastRecenterSignalRef = useRef(recenterSignal);
 
   // 렌더링 중에는 ref를 쓰지 않고, 콜백이 바뀔 때만 이펙트에서 최신 값을 동기화한다.
   useEffect(() => {
@@ -52,14 +94,25 @@ export function MapView({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
+    const savedState = readSavedMapState();
+    const initialCenter = savedState
+      ? { latitude: savedState.lat, longitude: savedState.lng }
+      : DEFAULT_CENTER;
+    const initialLevel = savedState ? savedState.level : DEFAULT_LEVEL;
+
     const map = new kakao.maps.Map(containerRef.current, {
       center: new kakao.maps.LatLng(
-        DEFAULT_CENTER.latitude,
-        DEFAULT_CENTER.longitude,
+        initialCenter.latitude,
+        initialCenter.longitude,
       ),
-      level: DEFAULT_LEVEL,
+      level: initialLevel,
     });
     mapRef.current = map;
+
+    // 복원할 상태가 있었다면 최초 GPS 확보 시 다시 그쪽으로 이동하지 않게 한다.
+    if (savedState) {
+      hasCenteredOnGpsRef.current = true;
+    }
 
     // 화면시안 우측 하단 확대/축소 컨트롤 — 카카오맵 SDK 기본 제공 컨트롤을 그대로 사용한다.
     // SDK에 나침반(지도 회전) 컨트롤은 별도로 제공되지 않아 추가하지 않았다(아래 보고 참고).
@@ -88,8 +141,25 @@ export function MapView({
       });
     };
 
+    // 요청서 3.4 — 상세 진입 전 지도 위치를 sessionStorage에 저장한다. bounds 조회와
+    // 같은 idle 이벤트를 재사용하되, 저장 자체는 디바운스 없이 즉시 한다(연산이 가볍다).
+    const saveMapState = () => {
+      const center = map.getCenter();
+      const state: SavedMapState = {
+        lat: center.getLat(),
+        lng: center.getLng(),
+        level: map.getLevel(),
+      };
+      try {
+        sessionStorage.setItem(MAP_STATE_STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        // sessionStorage를 못 쓰는 환경(프라이빗 모드 등)이어도 지도 자체는 계속 동작해야 한다.
+      }
+    };
+
     // MAP-03 규칙: idle 이벤트 후 300ms 디바운스
     kakao.maps.event.addListener(map, "idle", () => {
+      saveMapState();
       if (debounceTimerRef.current !== null) {
         window.clearTimeout(debounceTimerRef.current);
       }
@@ -141,7 +211,9 @@ export function MapView({
     };
   }, []);
 
-  // 현재 위치 마커 — 최초 GPS 확보 시에만 지도 중심을 이동한다(이후 사용자가 지도를 움직여도 강제로 되돌리지 않음)
+  // 현재 위치 마커 — 최초 GPS 확보 시에만 지도 중심을 이동한다(이후 사용자가 지도를 움직여도
+  // 강제로 되돌리지 않음). 복원된 지도 상태가 있었다면 hasCenteredOnGpsRef가 이미 true라서
+  // 여기서는 마커 위치만 갱신하고 지도 중심은 건드리지 않는다.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !currentPosition) return;
@@ -168,7 +240,21 @@ export function MapView({
     }
   }, [currentPosition]);
 
-  // 관광지 마커 — spots가 바뀔 때마다 다시 그린다
+  // 요청서 4단계 — "현재 위치" 버튼. recenterSignal이 실제로 바뀌었을 때만(마운트 시
+  // 최초 값과 같으면 스킵) currentPosition으로 지도 중심을 옮긴다. 스탬프 인증용 GPS
+  // 정확도 판정과는 무관 — 단순히 알고 있는 현재 위치로 지도만 이동한다.
+  useEffect(() => {
+    if (recenterSignal === lastRecenterSignalRef.current) return;
+    lastRecenterSignalRef.current = recenterSignal;
+
+    const map = mapRef.current;
+    if (!map || !currentPosition) return;
+    map.setCenter(
+      new kakao.maps.LatLng(currentPosition.latitude, currentPosition.longitude),
+    );
+  }, [recenterSignal, currentPosition]);
+
+  // 관광지 마커 — spots나 선택 상태가 바뀔 때마다 다시 그린다
   useEffect(() => {
     const map = mapRef.current;
     const clusterer = clustererRef.current;
@@ -177,17 +263,30 @@ export function MapView({
     clusterer.clear();
     markersRef.current.forEach((marker) => marker.setMap(null));
 
-    const stampImage = createAttractionMarkerImage("stamp");
-    const stampVisitedImage = createAttractionMarkerImage("stamp-visited");
-    const generalImage = createAttractionMarkerImage("general");
+    const images = {
+      stamp: createAttractionMarkerImage("stamp"),
+      "stamp-visited": createAttractionMarkerImage("stamp-visited"),
+      general: createAttractionMarkerImage("general"),
+      stampSelected: createAttractionMarkerImage("stamp", true),
+      "stamp-visitedSelected": createAttractionMarkerImage("stamp-visited", true),
+      generalSelected: createAttractionMarkerImage("general", true),
+    };
 
     const markers = spots.map((spot) => {
-      const image =
+      // 요청서 1.2 — 우선순위: VISITED > STAMP_TARGET/stampEnabled > GENERAL.
+      // type === "STAMP_TARGET"이 실제 서버 계약(백엔드 문서 MAP-01)의 스탬프 대상
+      // 판정 기준이라 그대로 쓴다 — stampEnabled를 OR로 추가하지 않는다(의미가 다르면
+      // 임의로 합치지 말라는 요청서 지시).
+      const variant: "stamp" | "stamp-visited" | "general" =
         spot.type === "STAMP_TARGET"
           ? spot.visitState === "VISITED"
-            ? stampVisitedImage
-            : stampImage
-          : generalImage;
+            ? "stamp-visited"
+            : "stamp"
+          : "general";
+      const selected = spot.id === selectedSpotId;
+      const image = selected
+        ? images[`${variant}Selected` as keyof typeof images]
+        : images[variant];
 
       const marker = new kakao.maps.Marker({
         position: new kakao.maps.LatLng(
@@ -196,6 +295,7 @@ export function MapView({
         ),
         image,
         title: spot.name,
+        zIndex: selected ? 5 : 1,
       });
 
       kakao.maps.event.addListener(marker, "click", () => {
@@ -207,7 +307,7 @@ export function MapView({
 
     markersRef.current = markers;
     clusterer.addMarkers(markers);
-  }, [spots]);
+  }, [spots, selectedSpotId]);
 
   return <div ref={containerRef} className={styles.mapContainer} />;
 }

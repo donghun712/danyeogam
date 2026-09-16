@@ -14,7 +14,11 @@ import styles from "./TitleSection.module.css";
  */
 function formatProgress({ currentValue, targetValue, progressUnit }: Title): string {
   const shown = Math.min(currentValue, targetValue);
-  if (progressUnit === "PERCENT") return `현재 ${shown}% · 목표 ${targetValue}%`;
+  // 요청서(출시 전) 2단계 — 도감 진행률과 형식을 통일해 소수점 첫째 자리를 붙인다.
+  // 단, 칭호 API에는 visitedCount/totalCount 같은 원본 개수가 없고 currentValue 자체가
+  // 이미 서버에서 정수로 반올림된 값이라(백엔드 titles API 문서), 도감처럼 실제 소수
+  // 정밀도를 복원할 방법이 없다 — 형식만 맞추는 것이고 정보량이 늘어나는 건 아니다.
+  if (progressUnit === "PERCENT") return `현재 ${shown.toFixed(1)}% · 목표 ${targetValue}%`;
   const unitLabel = progressUnit === "REGIONS" ? "곳" : "회";
   return `${shown} / ${targetValue}${unitLabel}`;
 }
