@@ -3,6 +3,7 @@ spring:
     activate:
       on-profile: prod
   flyway:
-    user: ${FLYWAY_DATABASE_USERNAME}
-    password: ${FLYWAY_DATABASE_PASSWORD}
-
+    # Disable Flyway for the serving revision after the schema has been migrated.
+    # A separate migration run supplies these credentials when Flyway is enabled.
+    user: ${FLYWAY_DATABASE_USERNAME:}
+    password: ${FLYWAY_DATABASE_PASSWORD:}
