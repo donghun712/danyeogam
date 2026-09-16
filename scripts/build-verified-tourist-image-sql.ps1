@@ -3,6 +3,8 @@ $ErrorActionPreference = "Stop"
 $workspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $auditPath = Join-Path $workspaceRoot "backend\docs\missing-image-source-audit.csv"
 $webPath = Join-Path $workspaceRoot "backend\docs\missing-image-web-discovery.csv"
+$manualPath = Join-Path $workspaceRoot "backend\docs\missing-image-manual-review.csv"
+$ktoPath = Join-Path $workspaceRoot "backend\docs\missing-image-kto-review.csv"
 $outputPath = Join-Path $workspaceRoot "db\danyeogam_external_images.sql"
 
 function Sql-String([AllowNull()][string]$value) {
@@ -45,6 +47,22 @@ Import-Csv -LiteralPath $webPath |
             Attribution = "사진 출처: $provider"
             VerifiedAt = $_.VerifiedAt
             SourceImageId = "verified-web:$($_.TouristSpotId)"
+        })
+    }
+
+@($manualPath, $ktoPath) | ForEach-Object { Import-Csv -LiteralPath $_ } |
+    ForEach-Object {
+        $approved.Add([pscustomobject]@{
+            TouristSpotId = [long]$_.TouristSpotId
+            Name = $_.Name
+            ImageUrl = $_.ImageUrl
+            SourcePageUrl = $_.SourcePageUrl
+            CopyrightType = $_.LicenseCode
+            LicenseUrl = $_.LicenseUrl
+            Provider = $_.Provider
+            Attribution = $_.Attribution
+            VerifiedAt = $_.VerifiedAt
+            SourceImageId = "verified-manual:$($_.TouristSpotId)"
         })
     }
 

@@ -4,7 +4,7 @@
 
 - `danyeogam_schema.sql`: MySQL 8.4용 독립 실행형 초기 스키마
 - `danyeogam_tour_seed.sql`: 2026-09-13 역사·문화 스탬프 카탈로그·상세정보 데이터 덤프
-- `danyeogam_external_images.sql`: 외부 출처 검증을 통과한 관광지 이미지 131건 보완 데이터
+- `danyeogam_external_images.sql`: 외부 출처·장소 일치를 확인한 관광지 이미지 182건 보완 데이터. 일부 웹 색인 사진의 재이용 권리는 출시 전 별도 확인 필요
 
 `danyeogam_tour_seed.sql` SHA-256: `0f9c3f0b5e16fcd7194e9b3bccc43580f0e377c8ed22a4f8f8f32b6ed3d9e6dc`
 
