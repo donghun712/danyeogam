@@ -58,11 +58,15 @@ class TitleControllerTest {
                 new TitleItemResponse(
                         1L, "FIRST_STEP", "첫 걸음", "첫 번째 스탬프",
                         true, Instant.parse("2026-09-11T00:00:00Z"),
-                        1, 1, "VISITS"
+                        1, 1, "VISITS", null, null
                 ),
                 new TitleItemResponse(
                         2L, "TRAVEL_RECORDER", "여행 기록가", "스탬프 10개",
-                        false, null, 1, 10, "VISITS"
+                        false, null, 1, 10, "VISITS", null, null
+                ),
+                new TitleItemResponse(
+                        3L, "REGION_MASTER:TOUR:AREA:11", "서울 터줏대감", "지역 20%",
+                        false, null, 0, 20, "PERCENT", 1L, 296L
                 )
         )));
 
@@ -70,10 +74,14 @@ class TitleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", containsString("private")))
                 .andExpect(header().string("Cache-Control", containsString("no-store")))
-                .andExpect(jsonPath("$.meta.count").value(2))
+                .andExpect(jsonPath("$.meta.count").value(3))
                 .andExpect(jsonPath("$.data.titles[0].code").value("FIRST_STEP"))
                 .andExpect(jsonPath("$.data.titles[0].earned").value(true))
                 .andExpect(jsonPath("$.data.titles[1].currentValue").value(1))
-                .andExpect(jsonPath("$.data.titles[1].targetValue").value(10));
+                .andExpect(jsonPath("$.data.titles[1].targetValue").value(10))
+                .andExpect(jsonPath("$.data.titles[1].currentCount").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.data.titles[2].currentValue").value(0))
+                .andExpect(jsonPath("$.data.titles[2].currentCount").value(1))
+                .andExpect(jsonPath("$.data.titles[2].targetCount").value(296));
     }
 }

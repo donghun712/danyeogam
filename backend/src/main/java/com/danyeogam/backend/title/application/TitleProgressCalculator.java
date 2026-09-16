@@ -91,13 +91,15 @@ public class TitleProgressCalculator {
                     }
                 }
                 RegionTitleProgressProjection item = provinceProgress.get(definition.getRegion().getId());
-                long currentPercent = item == null
-                        ? 0
-                        : roundedPercent(item.getVisitedCount(), item.getTotalCount());
+                long currentCount = item == null ? 0 : item.getVisitedCount();
+                long targetCount = item == null ? 0 : item.getTotalCount();
+                long currentPercent = roundedPercent(currentCount, targetCount);
                 progress = new TitleProgress(
                         currentPercent,
                         requiredPercent(definition),
-                        TitleProgressUnit.PERCENT
+                        TitleProgressUnit.PERCENT,
+                        currentCount,
+                        targetCount
                 );
             } else {
                 throw invalidDefinition(definition);

@@ -28,7 +28,9 @@ GET /api/v1/me/titles
         "awardedAt": null,
         "currentValue": 0,
         "targetValue": 1,
-        "progressUnit": "VISITS"
+        "progressUnit": "VISITS",
+        "currentCount": null,
+        "targetCount": null
       },
       {
         "id": 15,
@@ -39,7 +41,9 @@ GET /api/v1/me/titles
         "awardedAt": "2026-09-11T06:00:00Z",
         "currentValue": 24,
         "targetValue": 20,
-        "progressUnit": "PERCENT"
+        "progressUnit": "PERCENT",
+        "currentCount": 120,
+        "targetCount": 500
       }
     ]
   },
@@ -56,6 +60,8 @@ GET /api/v1/me/titles
 - `VISITS`: 서로 다른 관광지 방문 수
 - `REGIONS`: 서로 다른 광역 또는 시군구 방문 수
 - `PERCENT`: 해당 광역지역의 현재 도감 진행률
+
+`PERCENT` 칭호의 `currentCount`는 해당 지역의 방문 관광지 수, `targetCount`는 해당 지역의 전체 대상 관광지 수다. 프론트는 `currentCount / targetCount * 100`으로 표시용 소수점 진행률을 계산할 수 있다 (`targetCount=0`이면 `currentValue` 사용). 다른 단위의 두 필드는 `null`이다. `currentValue`는 기존처럼 정수 반올림된 백분율이며, 칭호 지급 판정은 이 값과 `targetValue`를 비교하는 기존 서버 로직 그대로 유지한다. `targetCount`는 목표 방문 수가 아니라 지역 전체 대상 수다.
 
 ## 스탬프 인증에서 신규 칭호 확인
 

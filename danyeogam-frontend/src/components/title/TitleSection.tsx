@@ -7,26 +7,36 @@ import type { Title } from "@/types/api";
 import styles from "./TitleSection.module.css";
 
 /**
- * currentValue/targetValue/progressUnit은 전부 서버가 계산해서 내려주는 값을 그대로
- * 표시한다 — CollectionProgress와 동일한 원칙으로 프론트에서 다시 계산하지 않는다.
+ * 방문/지역 수와 칭호 지급 판정은 서버의 currentValue/targetValue를 그대로 따른다.
+ * PERCENT의 소수점 표시에만 서버가 제공한 원본 개수를 사용한다.
  * 요청서 — 조건 단위를 해석 가능한 형태로: 횟수/지역 수는 "n / 목표단위",
  * 비율은 "현재 n% · 목표 m%".
  */
-function formatProgress({ currentValue, targetValue, progressUnit }: Title): string {
+function exactProgressPercent({ currentValue, currentCount, targetCount }: Title): number {
+  if (currentCount !== null && targetCount !== null && targetCount > 0) {
+    return (currentCount / targetCount) * 100;
+  }
+  return currentValue;
+}
+
+function formatProgress(title: Title): string {
+  const { currentValue, targetValue, progressUnit } = title;
+  if (progressUnit === "PERCENT") {
+    const shown = Math.min(exactProgressPercent(title), targetValue);
+    return `현재 ${shown.toFixed(1)}% · 목표 ${targetValue}%`;
+  }
   const shown = Math.min(currentValue, targetValue);
-  // 요청서(출시 전) 2단계 — 도감 진행률과 형식을 통일해 소수점 첫째 자리를 붙인다.
-  // 단, 칭호 API에는 visitedCount/totalCount 같은 원본 개수가 없고 currentValue 자체가
-  // 이미 서버에서 정수로 반올림된 값이라(백엔드 titles API 문서), 도감처럼 실제 소수
-  // 정밀도를 복원할 방법이 없다 — 형식만 맞추는 것이고 정보량이 늘어나는 건 아니다.
-  if (progressUnit === "PERCENT") return `현재 ${shown.toFixed(1)}% · 목표 ${targetValue}%`;
   const unitLabel = progressUnit === "REGIONS" ? "곳" : "회";
   return `${shown} / ${targetValue}${unitLabel}`;
 }
 
-/** progress bar 채움 비율(%) — 서버가 내려준 currentValue/targetValue 그대로 계산, 새 데이터 없음 */
-function progressPercent({ currentValue, targetValue, progressUnit }: Title): number {
+/** progress bar 채움 비율(%) — PERCENT는 원본 개수로 표시 정밀도만 높인다. */
+function progressPercent(title: Title): number {
+  const { currentValue, targetValue, progressUnit } = title;
   if (targetValue <= 0) return 0;
-  const value = progressUnit === "PERCENT" ? currentValue : (currentValue / targetValue) * 100;
+  const value = progressUnit === "PERCENT"
+    ? exactProgressPercent(title)
+    : (currentValue / targetValue) * 100;
   return Math.max(0, Math.min(100, value));
 }
 

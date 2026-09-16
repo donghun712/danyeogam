@@ -11,6 +11,8 @@ public record TitleItemResponse(
         Instant awardedAt,
         long currentValue,
         long targetValue,
-        String progressUnit
+        String progressUnit,
+        Long currentCount,
+        Long targetCount
 ) {
 }

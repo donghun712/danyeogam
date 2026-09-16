@@ -279,6 +279,9 @@ export interface Title {
   currentValue: number;
   targetValue: number;
   progressUnit: TitleProgressUnit;
+  /** PERCENT 칭호에만 제공: 해당 광역지역의 방문 수 / 전체 스탬프 대상 수. */
+  currentCount: number | null;
+  targetCount: number | null;
 }
 
 export interface TitleList {

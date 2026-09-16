@@ -68,7 +68,9 @@ public class TitleQueryService {
                 awardedAt,
                 progress.currentValue(),
                 progress.targetValue(),
-                progress.unit().name()
+                progress.unit().name(),
+                progress.currentCount(),
+                progress.targetCount()
         );
     }
 }

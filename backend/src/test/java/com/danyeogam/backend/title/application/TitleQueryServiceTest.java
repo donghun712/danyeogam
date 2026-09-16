@@ -37,24 +37,30 @@ class TitleQueryServiceTest {
     void returnsEveryActiveDefinitionWithOwnershipAndProgress() {
         TitleDefinition first = definition(1L, "FIRST");
         TitleDefinition second = definition(2L, "SECOND");
+        TitleDefinition regional = definition(3L, "REGIONAL");
         Instant awardedAt = Instant.parse("2026-09-11T00:00:00Z");
         ActorTitle award = new ActorTitle(42L, first, 90L, awardedAt);
         when(definitionRepository.findAllByActiveTrueOrderByDisplayOrderAscIdAsc())
-                .thenReturn(List.of(first, second));
+                .thenReturn(List.of(first, second, regional));
         when(actorTitleRepository.findAllByActorId(42L)).thenReturn(List.of(award));
-        when(progressCalculator.calculate(42L, List.of(first, second))).thenReturn(Map.of(
+        when(progressCalculator.calculate(42L, List.of(first, second, regional))).thenReturn(Map.of(
                 1L, new TitleProgress(1, 1, TitleProgressUnit.VISITS),
-                2L, new TitleProgress(3, 10, TitleProgressUnit.VISITS)
+                2L, new TitleProgress(3, 10, TitleProgressUnit.VISITS),
+                3L, new TitleProgress(0, 20, TitleProgressUnit.PERCENT, 1L, 296L)
         ));
 
         var result = service.getTitles(42L);
 
-        assertThat(result.titles()).hasSize(2);
+        assertThat(result.titles()).hasSize(3);
         assertThat(result.titles().get(0).earned()).isTrue();
         assertThat(result.titles().get(0).awardedAt()).isEqualTo(awardedAt);
         assertThat(result.titles().get(1).earned()).isFalse();
         assertThat(result.titles().get(1).currentValue()).isEqualTo(3);
         assertThat(result.titles().get(1).targetValue()).isEqualTo(10);
+        assertThat(result.titles().get(1).currentCount()).isNull();
+        assertThat(result.titles().get(2).currentValue()).isZero();
+        assertThat(result.titles().get(2).currentCount()).isEqualTo(1);
+        assertThat(result.titles().get(2).targetCount()).isEqualTo(296);
     }
 
     private static TitleDefinition definition(long id, String code) {

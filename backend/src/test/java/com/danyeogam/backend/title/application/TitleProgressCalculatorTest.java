@@ -86,7 +86,31 @@ class TitleProgressCalculatorTest {
         assertThat(result.currentValue()).isEqualTo(20);
         assertThat(result.targetValue()).isEqualTo(20);
         assertThat(result.unit()).isEqualTo(TitleProgressUnit.PERCENT);
+        assertThat(result.currentCount()).isEqualTo(1);
+        assertThat(result.targetCount()).isEqualTo(5);
         assertThat(result.achieved()).isTrue();
+    }
+
+    @Test
+    void preservesRawCountsWithoutChangingRoundedAwardDecision() {
+        Region province = Region.province("TOUR:AREA:11", "서울특별시");
+        ReflectionTestUtils.setField(province, "id", 11L);
+        TitleDefinition regional = withId(TitleDefinition.regionProgress(
+                "REGION_MASTER:TOUR:AREA:11", "서울 터줏대감", "지역",
+                province, new BigDecimal("20.00"), 100
+        ), 7L);
+        RegionTitleProgressProjection progress = mock(RegionTitleProgressProjection.class);
+        when(progress.getRegionId()).thenReturn(11L);
+        when(progress.getVisitedCount()).thenReturn(1L);
+        when(progress.getTotalCount()).thenReturn(296L);
+        when(visitRepository.findProvinceProgress(42L)).thenReturn(List.of(progress));
+
+        var result = calculator.calculate(42L, List.of(regional)).get(7L);
+
+        assertThat(result.currentValue()).isZero();
+        assertThat(result.currentCount()).isEqualTo(1);
+        assertThat(result.targetCount()).isEqualTo(296);
+        assertThat(result.achieved()).isFalse();
     }
 
     private static TitleDefinition withId(TitleDefinition definition, long id) {
