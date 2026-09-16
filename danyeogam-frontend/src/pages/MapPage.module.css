@@ -143,14 +143,12 @@
   color: var(--color-disabled);
 }
 
-/* 요청서(출시 전) 4단계 — 지도 탐색 위치를 유지하게 바뀌면서 필요해진 GPS 복귀 버튼.
-   카카오맵 기본 ZoomControl(우측 하단)과 겹치지 않도록 그 위쪽에 배치 — 정확한
-   ZoomControl 높이는 SDK가 직접 렌더링해 이 환경에서 실측하지 못했고, 기존
-   overlayBottom 여백(76px) 기준으로 넉넉히 잡은 값이라 실기기 확인이 필요하다. */
+/* 실제 Kakao BOTTOMRIGHT ZoomControl: right 3px, bottom 약 24px, 높이 186px.
+   버튼 오른쪽 끝을 맞추고, 컨트롤 바로 위에 약 10px 간격을 둔다. */
 .recenterButton {
   position: absolute;
-  right: var(--space-lg);
-  bottom: 130px;
+  right: 3px;
+  bottom: 220px;
   z-index: 20;
   display: flex;
   align-items: center;

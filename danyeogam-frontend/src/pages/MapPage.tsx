@@ -20,11 +20,6 @@ const BOUNDS_ERROR_MESSAGE: Record<string, string> = {
   NETWORK_ERROR: "네트워크 연결을 확인해 주세요.",
 };
 
-// 후속 요청서 1단계 — 현재 위치 버튼을 ZoomControl 바로 위에 둘 때 쓰는 크기/간격.
-// 버튼 자체 크기는 CSS(.recenterButton width/height)와 반드시 같은 값이어야 한다.
-const RECENTER_BUTTON_SIZE = 40;
-const RECENTER_GAP = 10;
-
 /**
  * SCREEN-MAP — 메인 지도.
  * 확인 대상: SDK 로드 → 지도 렌더링 → 현재 위치 → bounds 조회(디바운스/취소) →
@@ -40,12 +35,6 @@ export function MapPage() {
   const [legendOpen, setLegendOpen] = useState(false);
   // 요청서 4단계 — "현재 위치" 버튼을 누를 때마다 1씩 증가시켜 MapView에 신호를 보낸다.
   const [recenterSignal, setRecenterSignal] = useState(0);
-  // 후속 요청서 1단계 — 카카오 ZoomControl의 실제 렌더링 위치(런타임 측정값). 측정
-  // 실패 시 null로 두고 CSS의 고정 폴백 위치를 그대로 쓴다.
-  const [zoomControlRect, setZoomControlRect] = useState<{
-    right: number;
-    top: number;
-  } | null>(null);
 
   const latitude = currentLocation.position?.coords.latitude ?? null;
   const longitude = currentLocation.position?.coords.longitude ?? null;
@@ -129,27 +118,16 @@ export function MapPage() {
             onSelectSpot={setSelectedSpotId}
             selectedSpotId={selectedSpotId}
             recenterSignal={recenterSignal}
-            onZoomControlRect={setZoomControlRect}
           />
         )}
 
         {/* 요청서 4단계 — 지도 탐색 위치를 유지하게 바꾸면서, 사용자가 원할 때 GPS
-            현재 위치로 돌아갈 수 있는 명확한 수단이 필요해져 추가한 버튼.
-            후속 요청서 1단계 — 실제 렌더링된 카카오 ZoomControl 바로 위, 같은 우측
-            축으로 정렬한다(측정값 있을 때). 측정 실패 시 CSS 기본 위치로 폴백. */}
+            현재 위치로 돌아갈 수 있는 명확한 수단이 필요해져 추가한 버튼. 기존
+            줌 컨트롤(우측 하단) 위쪽에 같은 톤으로 배치한다. */}
         {sdkStatus === "ready" && (
           <button
             type="button"
             className={styles.recenterButton}
-            style={
-              zoomControlRect
-                ? {
-                    right: `${zoomControlRect.right}px`,
-                    top: `${zoomControlRect.top - RECENTER_BUTTON_SIZE - RECENTER_GAP}px`,
-                    bottom: "auto",
-                  }
-                : undefined
-            }
             onClick={() => setRecenterSignal((prev) => prev + 1)}
             aria-label="현재 위치로 이동"
             disabled={!currentPosition}
